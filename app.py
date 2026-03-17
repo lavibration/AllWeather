@@ -94,26 +94,32 @@ with tab1:
 
     def plot_price_with_regime(zone):
         ticker = "US" if zone == "US" else "EU"
-        price = signals_analysis[f"Price_{ticker}"]
-        regime = backtest_results[f"Regime_{ticker}"]
+        price_data = signals_analysis[f"Price_{ticker}"].to_frame(name="Prix")
+        regime_data = backtest_results[f"Regime_{ticker}"].to_frame(name="Regime")
 
-        fig = go.Figure()
-        fig.add_trace(go.Scatter(x=price.index, y=price, name=f"Indice {zone}", line=dict(color='black')))
+        df_plot = pd.concat([price_data, regime_data], axis=1).reset_index()
 
-        # Add background colors
-        # To optimize, we find continuous blocks of the same regime
-        regime_diff = (regime != regime.shift()).cumsum()
-        for r_id in regime_diff.unique():
-            subset = regime[regime_diff == r_id]
-            r_name = subset.iloc[0]
-            if r_name != "UNKNOWN":
-                fig.add_vrect(
-                    x0=subset.index[0], x1=subset.index[-1],
-                    fillcolor=COLORS.get(r_name, "white"), opacity=0.2,
-                    layer="below", line_width=0,
-                )
+        fig = px.scatter(
+            df_plot,
+            x="Date",
+            y="Prix",
+            color="Regime",
+            color_discrete_map={
+                "GOLDILOCKS": "green",
+                "REFLATION": "blue",
+                "STAGFLATION": "orange",
+                "DEFLATION": "gray",
+                "UNKNOWN": "lightgray"
+            },
+            title=f"Indice {zone} coloré par Régime"
+        )
 
-        fig.update_layout(title=f"Prix {zone} et Régimes", xaxis_title="Date", yaxis_title="Prix")
+        # Optionally add a thin black line to connect points
+        fig.add_trace(go.Scatter(x=df_plot["Date"], y=df_plot["Prix"], mode="lines", line=dict(color="black", width=1), showlegend=False))
+
+        fig.update_traces(marker=dict(size=4))
+        fig.update_layout(xaxis_title="Date", yaxis_title="Prix", legend_title="Régime")
+
         return fig
 
     st.plotly_chart(plot_price_with_regime("US"), use_container_width=True)
