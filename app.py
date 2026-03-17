@@ -28,7 +28,6 @@ tab1, tab2, tab3, tab4 = st.tabs([
     "📜 Méthodologie"
 ])
 
-# Colors
 COLORS = {
     "GOLDILOCKS": "green",
     "REFLATION": "blue",
@@ -40,114 +39,69 @@ COLORS = {
 # --- TAB 1: COCKPIT ---
 with tab1:
     st.header("Cockpit d'Exécution")
-
     col1, col2 = st.columns(2)
-
-    current_regime_us = backtest_results["Regime_US"].iloc[-1]
-    current_regime_eu = backtest_results["Regime_EU"].iloc[-1]
-
+    cur_us = backtest_results["Regime_US"].iloc[-1]
+    cur_eu = backtest_results["Regime_EU"].iloc[-1]
     with col1:
         st.subheader("États-Unis (S&P 500)")
-        st.markdown(f"**Régime Actuel :** :{COLORS.get(current_regime_us, 'white')}[{current_regime_us}]")
-
+        st.markdown(f"**Régime Actuel :** :{COLORS.get(cur_us, 'white')}[{cur_us}]")
     with col2:
         st.subheader("Europe (Euro Stoxx 50)")
-        st.markdown(f"**Régime Actuel :** :{COLORS.get(current_regime_eu, 'white')}[{current_regime_eu}]")
-
+        st.markdown(f"**Régime Actuel :** :{COLORS.get(cur_eu, 'white')}[{cur_eu}]")
     st.divider()
 
-    # Pie Charts
     col1, col2 = st.columns(2)
-
-    # Mocking target allocation for display (last row)
-    # In a real app, we'd want the exact weights from the last day
-    # We can reconstruct it or pass it through a CSV
-
     def get_pie_chart(regime, zone):
-        # Simplification for the UI
         allocs = {
             "US": {
-                "GOLDILOCKS": {"XLK (Tech)": 33.3, "XLY (Disc)": 33.3, "XLF (Fin)": 33.3},
-                "REFLATION": {"XLE (Eng)": 33.3, "XLB (Mat)": 33.3, "XLF (Fin)": 33.3},
+                "GOLDILOCKS": {"Tech (XLK)": 33.3, "Cons. Disc (XLY)": 33.3, "Finance (XLF)": 33.3},
+                "REFLATION": {"Energie (XLE)": 33.3, "Matériaux (XLB)": 33.3, "Finance (XLF)": 33.3},
                 "STAGFLATION": {"Commodities": 33.3, "CASH": 66.7},
-                "DEFLATION": {"XLY (Disc)": 33.3, "XLRE (RE)": 33.3, "XLC (Comm)": 33.3}
+                "DEFLATION": {"Cons. Disc (XLY)": 33.3, "Immobilier (XLRE)": 33.3, "Comm (XLC)": 33.3}
             },
             "EU": {
-                "GOLDILOCKS": {"Santé": 33.3, "Tech": 33.3, "Real Estate": 33.3},
-                "REFLATION": {"Banks": 33.3, "Basic Resources": 33.3, "Commodities": 33.3},
+                "GOLDILOCKS": {"Santé": 33.3, "Tech": 33.3, "Immobilier": 33.3},
+                "REFLATION": {"Banques": 33.3, "Ressources": 33.3, "Commodities": 33.3},
                 "STAGFLATION": {"Commodities": 33.3, "CASH": 66.7},
-                "DEFLATION": {"Santé": 33.3, "Automobile": 33.3, "Telecoms": 33.3}
+                "DEFLATION": {"Santé": 33.3, "Automobile": 33.3, "Télécoms": 33.3}
             }
         }
         data = allocs[zone].get(regime, {"CASH": 100})
         df = pd.DataFrame(list(data.items()), columns=["Asset", "Weight"])
-        fig = px.pie(df, values="Weight", names="Asset", title=f"Allocation Cible {zone} ({regime})")
-        return fig
+        return px.pie(df, values="Weight", names="Asset", title=f"Allocation Cible {zone} ({regime})")
 
-    with col1:
-        st.plotly_chart(get_pie_chart(current_regime_us, "US"))
-    with col2:
-        st.plotly_chart(get_pie_chart(current_regime_eu, "EU"))
+    with col1: st.plotly_chart(get_pie_chart(cur_us, "US"))
+    with col2: st.plotly_chart(get_pie_chart(cur_eu, "EU"))
 
-    # Price charts with regime background
     st.subheader("Historique des Régimes")
-
     def plot_price_with_regime(zone):
         ticker = "US" if zone == "US" else "EU"
-        price_data = signals_analysis[f"Price_{ticker}"].to_frame(name="Prix")
-        regime_data = backtest_results[f"Regime_{ticker}"].to_frame(name="Regime")
-
-        df_plot = pd.concat([price_data, regime_data], axis=1).reset_index()
-
-        fig = px.scatter(
-            df_plot,
-            x="Date",
-            y="Prix",
-            color="Regime",
-            color_discrete_map={
-                "GOLDILOCKS": "green",
-                "REFLATION": "blue",
-                "STAGFLATION": "orange",
-                "DEFLATION": "gray",
-                "UNKNOWN": "lightgray"
-            },
-            title=f"Indice {zone} coloré par Régime"
-        )
-
-        # Optionally add a thin black line to connect points
+        df_plot = pd.concat([signals_analysis[f"Price_{ticker}"], backtest_results[f"Regime_{ticker}"]], axis=1).reset_index()
+        df_plot.columns = ["Date", "Prix", "Regime"]
+        fig = px.scatter(df_plot, x="Date", y="Prix", color="Regime", color_discrete_map={
+            "GOLDILOCKS": "green", "REFLATION": "blue", "STAGFLATION": "orange", "DEFLATION": "gray", "UNKNOWN": "lightgray"
+        }, title=f"Indice {zone} coloré par Régime")
         fig.add_trace(go.Scatter(x=df_plot["Date"], y=df_plot["Prix"], mode="lines", line=dict(color="black", width=1), showlegend=False))
-
         fig.update_traces(marker=dict(size=4))
-        fig.update_layout(xaxis_title="Date", yaxis_title="Prix", legend_title="Régime")
-
         return fig
-
     st.plotly_chart(plot_price_with_regime("US"), use_container_width=True)
     st.plotly_chart(plot_price_with_regime("EU"), use_container_width=True)
 
 # --- TAB 2: SIGNALS ---
 with tab2:
     st.header("Analyse des Signaux")
-
-    # Growth
     st.subheader("Signal Croissance (Indice vs MA200)")
     zone_choice = st.selectbox("Choisir la Zone", ["US", "EU"])
-
-    p = signals_analysis[f"Price_{zone_choice}"]
-    m = signals_analysis[f"MA200_{zone_choice}"]
-
+    p, m = signals_analysis[f"Price_{zone_choice}"], signals_analysis[f"MA200_{zone_choice}"]
     fig_g = go.Figure()
     fig_g.add_trace(go.Scatter(x=p.index, y=p, name="Prix"))
-    fig_g.add_trace(go.Scatter(x=m.index, y=m, name="MA200", line=dict(dash='solid')))
+    fig_g.add_trace(go.Scatter(x=m.index, y=m, name="MA200"))
     fig_g.add_trace(go.Scatter(x=m.index, y=m*1.01, name="+1% Hystérésis", line=dict(dash='dash', color='green')))
     fig_g.add_trace(go.Scatter(x=m.index, y=m*0.99, name="-1% Hystérésis", line=dict(dash='dash', color='red')))
     st.plotly_chart(fig_g, use_container_width=True)
 
-    # Inflation
     st.subheader("Signal Inflation (Ratio Beta vs Médiane)")
-    ratio = signals_analysis["Inflation_Ratio"]
-    med = signals_analysis["Inflation_Median"]
-
+    ratio, med = signals_analysis["Inflation_Ratio"], signals_analysis["Inflation_Median"]
     fig_i = go.Figure()
     fig_i.add_trace(go.Scatter(x=ratio.index, y=ratio, name="Ratio (Pos/Neg)"))
     fig_i.add_trace(go.Scatter(x=med.index, y=med, name="Médiane 200j"))
@@ -159,38 +113,34 @@ with tab2:
 with tab3:
     st.header("Analyse des Performances")
 
-    # Statistics Table
     st.subheader("Statistiques de la Stratégie")
+    tabs_stats = st.tabs(["Global", "Poche US", "Poche EU"])
+    for i, port in enumerate(["Global", "US", "EU"]):
+        with tabs_stats[i]:
+            s = strategy_stats[strategy_stats["Portfolio"] == port].iloc[0]
+            c1, c2, c3, c4, c5 = st.columns(5)
+            c1.metric("CAGR", f"{s['CAGR']*100:.2f}%")
+            c2.metric("Volatilité", f"{s['Volatility']*100:.2f}%")
+            c3.metric("Sharpe", f"{s['Sharpe']:.2f}")
+            c4.metric("Max Drawdown", f"{s['Max_Drawdown']*100:.2f}%")
+            c5.metric("Hit Rate", f"{s['Hit_Rate']*100:.2f}%")
 
-    if not strategy_stats.empty:
-        s = strategy_stats.iloc[0]
-        c1, c2, c3, c4, c5 = st.columns(5)
-        c1.metric("CAGR", f"{s['CAGR']*100:.2f}%")
-        c2.metric("Volatilité", f"{s['Volatility']*100:.2f}%")
-        c3.metric("Sharpe", f"{s['Sharpe']:.2f}")
-        c4.metric("Max Drawdown", f"{s['Max_Drawdown']*100:.2f}%")
-        c5.metric("Hit Rate", f"{s['Hit_Rate']*100:.2f}%")
-
-    # Cumulative Performance Chart
-    st.subheader("Performance Cumulative (Stratégie vs Benchmark)")
+    st.subheader("Performance Cumulative")
     fig_perf = go.Figure()
-    fig_perf.add_trace(go.Scatter(x=backtest_results.index, y=backtest_results["Portfolio_Value"], name="Stratégie"))
-    fig_perf.add_trace(go.Scatter(x=backtest_results.index, y=backtest_results["Benchmark_Value"], name="Benchmark (S&P 500)"))
+    fig_perf.add_trace(go.Scatter(x=backtest_results.index, y=backtest_results["Value_Global"], name="Stratégie Globale", line=dict(width=3)))
+    fig_perf.add_trace(go.Scatter(x=backtest_results.index, y=backtest_results["Value_US"], name="Poche Macro US", line=dict(dash='dash', width=1)))
+    fig_perf.add_trace(go.Scatter(x=backtest_results.index, y=backtest_results["Value_EU"], name="Poche Macro EU", line=dict(dash='dash', width=1)))
+    fig_perf.add_trace(go.Scatter(x=backtest_results.index, y=backtest_results["Benchmark_Value"], name="Benchmark (S&P 500)", line=dict(dash='dot', color='rgba(100,100,100,0.5)')))
+    fig_perf.update_layout(hovermode="x unified", yaxis_title="Valeur du Portefeuille (Base 1000)")
     st.plotly_chart(fig_perf, use_container_width=True)
 
-    # Heatmap
     st.subheader("Performance des Secteurs par Régime")
-    # Multiplying by 100 for % display
-    pivot_perf = sector_performance.pivot_table(index="Sector", columns="Regime", values="Avg_Annual_Return") * 100
-    fig_heat = px.imshow(
-        pivot_perf,
-        text_auto=".2f",
-        aspect="auto",
-        color_continuous_scale="RdYlGn",
-        title="Rendement Annuel Moyen (%) par Régime",
-        labels=dict(color="Rendement (%)")
-    )
-    fig_heat.update_layout(height=800) # Taller heatmap
+    zone_heat = st.radio("Zone Heatmap", ["US", "EU"], horizontal=True)
+    filtered_perf = sector_performance[sector_performance["Zone"] == zone_heat]
+    pivot_perf = filtered_perf.pivot_table(index="Sector", columns="Regime", values="Avg_Annual_Return") * 100
+    fig_heat = px.imshow(pivot_perf, text_auto=".2f", color_continuous_scale="RdYlGn",
+                         title=f"Rendement Annuel Moyen (%) - Zone {zone_heat}", labels=dict(color="Rendement (%)"))
+    fig_heat.update_layout(height=800)
     st.plotly_chart(fig_heat, use_container_width=True)
 
 # --- TAB 4: METHODOLOGY ---
@@ -199,27 +149,16 @@ with tab4:
     st.markdown("""
     ### 1. Structure du Portefeuille
     - **10 % OR** (ETF GLD) : Rééquilibré mensuellement.
-    - **90 % POCHE MACRO** : Pilotée dynamiquement par zone (US et EU).
+    - **90 % POCHE MACRO** : Pilotée dynamiquement entre US et EU (Momentum relatif 1an).
 
     ### 2. Calcul des Signaux (Hystérésis 1,0 %)
-    - **Signal Croissance** : Indice vs sa Moyenne Mobile 200j.
-        - UP : Clôture > 1,01 * MM200
-        - DOWN : Clôture < 0,99 * MM200
-    - **Signal Inflation** : Ratio (Bêta Positif / Bêta Négatif) vs sa Médiane 200j.
-        - UP : Ratio > 1,01 * Médiane
-        - DOWN : Ratio < 0,99 * Médiane
+    - **Anti-Look-Ahead** : Les poids du jour *T* sont calculés sur la base des signaux arrêtés au jour *T-1*.
+    - **Croissance** : Indice vs sa MM200 (±1% Hystérésis).
+    - **Inflation** : Ratio (Bêta+ / Bêta-) vs sa Médiane 200j (±1% Hystérésis).
 
-    ### 3. Composition des Portefeuilles Bêta
-    - **Bêta Positif** : Energy (35%), Financials/Banks (25%), Materials (20%), Commodities (20%).
-    - **Bêta Négatif** : Growth Tech (40%), Cons. Discretionary (30%), Utilities (15%), Growth Real Estate (15%).
-
-    ### 4. Matrice d'Allocation (Max 33,3% par secteur)
-    - **GOLDILOCKS** (C+ / I-) : Tech, Cons. Disc, Financials (US) / Santé, Tech, RE (EU).
-    - **REFLATION** (C+ / I+) : Energy, Materials, Financials (US) / Banks, Basic Res, Commodities (EU).
-    - **STAGFLATION** (C- / I+) : Commodities (33.3%), CASH (66.7%).
-    - **DEFLATION** (C- / I-) : Cons. Disc, Real Estate, Comm (US) / Santé, Automobile, Telecoms (EU).
-
-    ### 5. Frais & Contraintes
-    - **Frais de transaction** : 0,10 % sur la valeur totale de chaque changement de poids.
-    - **Plafond** : Max 33,3% par secteur dans la poche macro.
+    ### 3. Composition & Contraintes
+    - **Bêta Positif** : Energy, Finance, Materials, Commodities.
+    - **Bêta Négatif** : Tech, Cons. Disc, Utilities, Real Estate.
+    - **Frais** : 0,10 % de frais de transaction sur tout changement de poids (Turnover).
+    - **Max Secteur** : 33,3% au sein de chaque poche macro.
     """)
