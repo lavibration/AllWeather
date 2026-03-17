@@ -161,7 +161,15 @@ with tab3:
 
     # Statistics Table
     st.subheader("Statistiques de la Stratégie")
-    st.table(strategy_stats)
+
+    if not strategy_stats.empty:
+        s = strategy_stats.iloc[0]
+        c1, c2, c3, c4, c5 = st.columns(5)
+        c1.metric("CAGR", f"{s['CAGR']*100:.2f}%")
+        c2.metric("Volatilité", f"{s['Volatility']*100:.2f}%")
+        c3.metric("Sharpe", f"{s['Sharpe']:.2f}")
+        c4.metric("Max Drawdown", f"{s['Max_Drawdown']*100:.2f}%")
+        c5.metric("Hit Rate", f"{s['Hit_Rate']*100:.2f}%")
 
     # Cumulative Performance Chart
     st.subheader("Performance Cumulative (Stratégie vs Benchmark)")
@@ -172,8 +180,17 @@ with tab3:
 
     # Heatmap
     st.subheader("Performance des Secteurs par Régime")
-    pivot_perf = sector_performance.pivot_table(index="Sector", columns="Regime", values="Avg_Annual_Return")
-    fig_heat = px.imshow(pivot_perf, text_auto=True, color_continuous_scale="RdYlGn", title="Annualized Avg Return per Regime")
+    # Multiplying by 100 for % display
+    pivot_perf = sector_performance.pivot_table(index="Sector", columns="Regime", values="Avg_Annual_Return") * 100
+    fig_heat = px.imshow(
+        pivot_perf,
+        text_auto=".2f",
+        aspect="auto",
+        color_continuous_scale="RdYlGn",
+        title="Rendement Annuel Moyen (%) par Régime",
+        labels=dict(color="Rendement (%)")
+    )
+    fig_heat.update_layout(height=800) # Taller heatmap
     st.plotly_chart(fig_heat, use_container_width=True)
 
 # --- TAB 4: METHODOLOGY ---
