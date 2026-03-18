@@ -3,4 +3,3 @@ pandas
 numpy
 streamlit
 plotly
-altair<5

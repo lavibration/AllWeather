@@ -3,7 +3,7 @@ import pandas as pd
 import numpy as np
 import os
 
-# --- 1. PARAMETERS & CONFIGURATION ---
+# --- 1. PARAMETERS & CONFIGURATION (Optimized Weights) ---
 TICKERS = {
     "US": {
         "Index": "^GSPC",
@@ -62,30 +62,29 @@ def calculate_signals(data, zone):
     signals = pd.DataFrame(index=data.index)
     price = data[conf["Index"]]
     ma200 = price.rolling(200).mean()
-    status_g = pd.Series(index=data.index, dtype="string")
+    status_g = pd.Series("UNKNOWN", index=data.index, dtype="string")
     curr = None
     for i in range(len(data)):
         p, m = price.iloc[i], ma200.iloc[i]
         if not pd.isna(m):
             if p > 1.01 * m: curr = "UP"
             elif p < 0.99 * m: curr = "DOWN"
-            status_g.iloc[i] = curr
+            status_g.iloc[i] = curr if curr else "UNKNOWN"
     signals["Price"], signals["MA200"], signals["Growth"] = price, ma200, status_g
 
     rets = data.pct_change()
     pos = sum(rets[tk] * wt for tk, wt in conf["Beta_Pos"].items() if tk in rets.columns).fillna(0)
     neg = sum(rets[tk] * wt for tk, wt in conf["Beta_Neg"].items() if tk in rets.columns).fillna(0)
     ratio = (1+pos).cumprod() / (1+neg).cumprod()
-    ratio = ratio.loc[data.index]
     med200 = ratio.rolling(200).median()
-    status_i = pd.Series(index=data.index, dtype="string")
+    status_i = pd.Series("UNKNOWN", index=data.index, dtype="string")
     curr = None
     for i in range(len(data)):
         r, m = ratio.iloc[i], med200.iloc[i]
         if not pd.isna(m):
             if r > 1.01 * m: curr = "UP"
             elif r < 0.99 * m: curr = "DOWN"
-            status_i.iloc[i] = curr
+            status_i.iloc[i] = curr if curr else "UNKNOWN"
     signals["Ratio"], signals["Median"], signals["Inflation"] = ratio, med200, status_i
 
     regime = pd.Series("UNKNOWN", index=data.index, dtype="string")
@@ -104,12 +103,7 @@ def backtest_pocket(data, signals, zone):
     cur_w = {}
     history = []
     for i in range(len(data)):
-        date = data.index[i]
         reg = sig_shifted.iloc[i]
-
-        # Determine target allocation (10% Gold rebalanced monthly, 90% Macro)
-        is_rebalance_day = (i == 0) or (date.month != data.index[i-1].month)
-
         tar_w = {"GLD": 0.10}
         if reg != "UNKNOWN":
             for tk, wt in TICKERS[zone]["Regimes"][reg].items():
@@ -119,35 +113,15 @@ def backtest_pocket(data, signals, zone):
         tw = sum(tar_w.values())
         if abs(1.0 - tw) > 1e-6: tar_w["CASH"] = tar_w.get("CASH", 0) + (1.0 - tw)
 
-        # Monthly rebalancing logic for the entire portfolio (including Gold)
-        if is_rebalance_day:
-            to = sum(abs(tar_w.get(tk, 0) - cur_w.get(tk, 0)) for tk in set(list(cur_w.keys()) + list(tar_w.keys())))
-            fee = to * val * 0.0010
-            val -= fee
-            current_pocket_weights = tar_w.copy()
-            # Apply daily return after rebalancing
-            r_day = sum(wt * rets.iloc[i].get(tk, 0) for tk, wt in current_pocket_weights.items())
-            val *= (1 + r_day)
-            # Update weights after market move
-            current_pocket_weights = {tk: (wt * (1 + rets.iloc[i].get(tk, 0))) / (1 + r_day) for tk, wt in current_pocket_weights.items()}
-        else:
-            # Intra-month: Let weights drift
-            day_rets = np.array([current_pocket_weights.get(tk, 0) * (1 + rets.iloc[i].get(tk, 0)) for tk in current_pocket_weights])
-            total_ret = day_rets.sum()
-            current_pocket_weights = {tk: (current_pocket_weights.get(tk, 0) * (1 + rets.iloc[i].get(tk, 0))) / total_ret for tk in current_pocket_weights}
-            val *= total_ret
-            # No fees intra-month since no trade (unless regime change)
-            # Re-check for regime changes intra-month
-            if reg != sig_shifted.iloc[i-1 if i > 0 else 0]:
-                to = sum(abs(tar_w.get(tk, 0) - current_pocket_weights.get(tk, 0)) for tk in set(list(current_pocket_weights.keys()) + list(tar_w.keys())))
-                fee = to * val * 0.0010
-                val -= fee
-                current_pocket_weights = tar_w.copy()
-
-        cur_w = current_pocket_weights.copy()
-        r = (val / history[-1]["Value"] - 1) if history else 0
-        history.append({"Date": date, f"Value_{zone}": val, f"Return_{zone}": r, f"Regime_Backtest_{zone}": reg, "Value": val})
-    return pd.DataFrame(history).set_index("Date").drop(columns=["Value"])
+        # Simple daily rebalancing (Original Functional Architecture)
+        to = sum(abs(tar_w.get(tk, 0) - cur_w.get(tk, 0)) for tk in set(list(cur_w.keys()) + list(tar_w.keys())))
+        fee = to * val * 0.0010
+        val -= fee
+        r = sum(wt * rets.iloc[i].get(tk, 0) for tk, wt in tar_w.items())
+        val *= (1 + r)
+        cur_w = tar_w.copy()
+        history.append({"Date": data.index[i], f"Value_{zone}": val, f"Return_{zone}": r, f"Regime_Backtest_{zone}": reg})
+    return pd.DataFrame(history).set_index("Date")
 
 if __name__ == "__main__":
     data = download_data()
@@ -184,4 +158,4 @@ if __name__ == "__main__":
     pd.concat([sig_us.add_suffix("_US"), sig_eu.add_suffix("_EU")], axis=1).to_csv("signals_analysis.csv")
     pd.DataFrame(stats_list).to_csv("strategy_stats.csv", index=False)
     pd.DataFrame(perf_list).to_csv("sector_performance.csv", index=False)
-    print("Final Production CSVs exported successfully.")
+    print("CSVs exported with Original Architecture + New Weights.")
