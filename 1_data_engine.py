@@ -153,14 +153,11 @@ def determine_regimes(growth_signals, inflation_signals):
     return regimes
 
 def calculate_zone_allocation(data):
-    returns_us = data["^GSPC"].pct_change(252)
-    returns_eu = data["^STOXX50E"].pct_change(252)
+    # Fixed allocation as per strict requirements: 10% Gold, 45% US, 45% EU
     weights = pd.DataFrame(index=data.index)
-    us_share = pd.Series(0.45, index=data.index)
-    for i in range(252, len(data)):
-        if returns_us.iloc[i] > returns_eu.iloc[i]: us_share.iloc[i] = 0.55
-        else: us_share.iloc[i] = 0.35
-    weights["Macro_US"], weights["Macro_EU"], weights["Gold"] = us_share, 0.90 - us_share, 0.10
+    weights["Macro_US"] = 0.45
+    weights["Macro_EU"] = 0.45
+    weights["Gold"] = 0.10
     return weights
 
 def backtest_strategy(data, regimes, zone_alloc):

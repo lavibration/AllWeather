@@ -147,9 +147,10 @@ with tab3:
 with tab4:
     st.header("Méthodologie")
     st.markdown("""
-    ### 1. Structure du Portefeuille
-    - **10 % OR** (ETF GLD) : Rééquilibré mensuellement.
-    - **90 % POCHE MACRO** : Pilotée dynamiquement entre US et EU (Momentum relatif 1an).
+    ### 1. Structure du Portefeuille (Statique)
+    - **10 % OR** (ETF GLD) : Allocation fixe, rééquilibrée mensuellement.
+    - **45 % STRATÉGIE US** : Pilotée exclusivement par les signaux US.
+    - **45 % STRATÉGIE EU** : Pilotée exclusivement par les signaux EU.
 
     ### 2. Calcul des Signaux (Hystérésis 1,0 %)
     - **Anti-Look-Ahead** : Les poids du jour *T* sont calculés sur la base des signaux arrêtés au jour *T-1*.
