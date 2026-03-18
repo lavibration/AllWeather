@@ -1,0 +1,35 @@
+[*********************100%***********************]  1 of 1 completed
+[*********************100%***********************]  1 of 1 completed
+[                       0%                       ][*******               15%                       ]  2 of 13 completed[***********           23%                       ]  3 of 13 completed[***************       31%                       ]  4 of 13 completed[******************    38%                       ]  5 of 13 completed[**********************46%                       ]  6 of 13 completed[**********************54%*                      ]  7 of 13 completed[**********************62%*****                  ]  8 of 13 completed[**********************69%********               ]  9 of 13 completed[**********************77%************           ]  10 of 13 completed[**********************85%****************       ]  11 of 13 completed[**********************92%*******************    ]  12 of 13 completed[*********************100%***********************]  13 of 13 completed
+/app/mdd_analysis.py:48: FutureWarning: The default fill_method='pad' in DataFrame.pct_change is deprecated and will be removed in a future version. Either fill in any non-leading NA values prior to calling pct_change or specify 'fill_method=None' to not fill NA values.
+  rets = data.pct_change().fillna(0)
+/app/mdd_analysis.py:48: FutureWarning: The default fill_method='pad' in DataFrame.pct_change is deprecated and will be removed in a future version. Either fill in any non-leading NA values prior to calling pct_change or specify 'fill_method=None' to not fill NA values.
+  rets = data.pct_change().fillna(0)
+/app/mdd_analysis.py:48: FutureWarning: The default fill_method='pad' in DataFrame.pct_change is deprecated and will be removed in a future version. Either fill in any non-leading NA values prior to calling pct_change or specify 'fill_method=None' to not fill NA values.
+  rets = data.pct_change().fillna(0)
+/app/mdd_analysis.py:48: FutureWarning: The default fill_method='pad' in DataFrame.pct_change is deprecated and will be removed in a future version. Either fill in any non-leading NA values prior to calling pct_change or specify 'fill_method=None' to not fill NA values.
+  rets = data.pct_change().fillna(0)
+/app/mdd_analysis.py:48: FutureWarning: The default fill_method='pad' in DataFrame.pct_change is deprecated and will be removed in a future version. Either fill in any non-leading NA values prior to calling pct_change or specify 'fill_method=None' to not fill NA values.
+  rets = data.pct_change().fillna(0)
+--- 1. IDENTIFICATION DE LA FENÊTRE CRITIQUE ---
+Date du Sommet (Peak): 2020-02-13
+Date du Point Bas (Trough): 2020-03-18
+Date de récupération: 2021-02-24
+Durée Peak-to-Trough: 34 jours
+Durée Underwater: 377 jours
+Max Drawdown: -41.20%
+
+--- 2. ATTRIBUTION DE LA PERTE ---
+Performance Benchmark (Euro Stoxx 50): -37.98%
+Performance Poche OR (10%): -5.18%
+Regimes durant la chute: ['GOLDILOCKS' 'DEFLATION']
+
+--- 3. ANALYSE DU RÉGIME ET DES SIGNAUX ---
+Déclenchement Signal de Sortie (Hystérésis 1%): 2020-02-27 (14 jours après le peak)
+Impact Hystérésis 0.0% -> Drawdown sur période: -1.12%
+Impact Hystérésis 0.5% -> Drawdown sur période: -1.12%
+Impact Hystérésis 1.0% -> Drawdown sur période: -1.12%
+
+--- 4. COMPARAISON OPTIMISÉ VS HISTORIQUE ---
+Drawdown 'Optimisé' (Banques/Auto/Ressources): -1.12%
+Drawdown 'Historique' (Santé/Tech/Immo + CASH): -1.12%

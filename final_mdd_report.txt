@@ -1,0 +1,31 @@
+[                       0%                       ][*******               15%                       ]  2 of 13 completed[***********           23%                       ]  3 of 13 completed[***************       31%                       ]  4 of 13 completed[******************    38%                       ]  5 of 13 completed[**********************46%                       ]  6 of 13 completed[**********************54%*                      ]  7 of 13 completed[**********************62%*****                  ]  8 of 13 completed[**********************69%********               ]  9 of 13 completed[**********************77%************           ]  10 of 13 completed[**********************85%****************       ]  11 of 13 completed[**********************92%*******************    ]  12 of 13 completed[*********************100%***********************]  13 of 13 completed
+Tickers téléchargeables: ['EXI5.DE', 'EXV1.DE', 'EXV2.DE', 'EXV3.DE', 'EXV4.DE', 'EXV6.DE', 'EXV7.DE', 'EXV8.DE', 'EXV9.DE', 'EXW1.DE', 'GLD', 'SXRS.DE', '^STOXX50E']
+--- RAPPORT DÉCOMPOSITION DU RISQUE (CRASH COVID 2020) ---
+Période: 2020-02-13 au 2020-03-18
+Baisse Euro Stoxx 50: -37.98%
+Baisse Poche OR (10%): -5.18%
+
+Performance des secteurs 'Optimisés' (détenus au début du crash):
+Banques (EXV1.DE): -42.97%
+Utilities (EXV9.DE): -55.08%
+Conso (EXV8.DE): -42.55%
+
+Performance des secteurs 'Strict' (Paramètres initiaux):
+Santé (EXV4.DE): -23.65%
+Auto (EXV2.DE): -26.04%
+Telecoms (EXV7.DE): -30.16%
+Price at Peak: 3846.739990234375
+MA200 at Peak: 3554.5937438964843
+
+--- ANALYSE DU SIGNAL ---
+Signal de sortie (Hystérésis 1.0%): 2020-02-27
+Latence (Lag): 14 jours
+Perte subie AVANT la sortie du régime de croissance: -10.16%
+Signal de sortie (Hystérésis 0.0%): 2020-02-27 (14 jours)
+Perte subie (0.0% Hysteresis): -10.16%
+
+--- COMPARAISON MDD SUR LA PÉRIODE ---
+Max Drawdown (Matrice OPTIMISÉE): -41.32%
+Max Drawdown (Matrice STRICT): -27.17%
+
+Graphique 'underwater_crash_comparison.png' généré.
