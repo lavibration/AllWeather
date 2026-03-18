@@ -33,7 +33,7 @@ with tab1:
     with col2:
         st.subheader("Poche Europe")
         st.markdown(f"**Régime Actuel :** :{COLORS.get(cur_eu)}[{cur_eu}]")
-    st.divider()
+    st.markdown("---")
 
     col1, col2 = st.columns(2)
     def get_pie(regime, zone):
@@ -135,4 +135,10 @@ with tab4:
     L'univers a été élargi (Assurances, Telecoms, Utilities) et optimisé sur les données récentes (P4 2023-2026) tout en validant la résilience historique (Stress-test P2).
     - **Frais** : 0,10 % par transaction.
     - **Cap** : Maximum 33,3 % par secteur dans la poche Macro (soit 30 % du global).
+
+    ### 5. Résilience (Stress-Test 2013-2019)
+    La stratégie optimisée a été validée sur la Période 2 (Taux bas / Inflation nulle) :
+    - **US** : Sharpe 0.81 | MDD -14.1%
+    - **EU** : Sharpe 0.68 | MDD -19.7%
+    Ces résultats confirment une meilleure robustesse par rapport à l'allocation historique.
     """)
