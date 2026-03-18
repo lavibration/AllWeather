@@ -1,0 +1,610 @@
+[                       0%                       ][****                   9%                       ]  2 of 22 completed[*******               14%                       ]  3 of 22 completed[*********             18%                       ]  4 of 22 completed[***********           23%                       ]  5 of 22 completed[*************         27%                       ]  6 of 22 completed[***************       32%                       ]  7 of 22 completed[*****************     36%                       ]  8 of 22 completed[********************  41%                       ]  9 of 22 completed[**********************45%                       ]  10 of 22 completed[**********************50%                       ]  11 of 22 completed[**********************55%*                      ]  12 of 22 completed[**********************59%***                    ]  13 of 22 completed[**********************64%******                 ]  14 of 22 completed[**********************68%********               ]  15 of 22 completed[**********************73%**********             ]  16 of 22 completed[**********************77%************           ]  17 of 22 completed[**********************82%**************         ]  18 of 22 completed[**********************86%****************       ]  19 of 22 completed[**********************91%*******************    ]  20 of 22 completed[**********************95%*********************  ]  21 of 22 completed[*********************100%***********************]  22 of 22 completed
+/app/audit_stats_v2.py:61: FutureWarning: The default fill_method='pad' in DataFrame.pct_change is deprecated and will be removed in a future version. Either fill in any non-leading NA values prior to calling pct_change or specify 'fill_method=None' to not fill NA values.
+  rets = data.pct_change()
+/app/audit_stats_v2.py:95: FutureWarning: The default fill_method='pad' in DataFrame.pct_change is deprecated and will be removed in a future version. Either fill in any non-leading NA values prior to calling pct_change or specify 'fill_method=None' to not fill NA values.
+  rets = p_data.pct_change().loc[sigs.index]
+/app/audit_stats_v2.py:61: FutureWarning: The default fill_method='pad' in DataFrame.pct_change is deprecated and will be removed in a future version. Either fill in any non-leading NA values prior to calling pct_change or specify 'fill_method=None' to not fill NA values.
+  rets = data.pct_change()
+/app/audit_stats_v2.py:61: FutureWarning: The default fill_method='pad' in DataFrame.pct_change is deprecated and will be removed in a future version. Either fill in any non-leading NA values prior to calling pct_change or specify 'fill_method=None' to not fill NA values.
+  rets = data.pct_change()
+/app/audit_stats_v2.py:95: FutureWarning: The default fill_method='pad' in DataFrame.pct_change is deprecated and will be removed in a future version. Either fill in any non-leading NA values prior to calling pct_change or specify 'fill_method=None' to not fill NA values.
+  rets = p_data.pct_change().loc[sigs.index]
+/app/audit_stats_v2.py:61: FutureWarning: The default fill_method='pad' in DataFrame.pct_change is deprecated and will be removed in a future version. Either fill in any non-leading NA values prior to calling pct_change or specify 'fill_method=None' to not fill NA values.
+  rets = data.pct_change()
+
+=========================================
+   AUDIT: US | P1 (2005-2012)
+=========================================
+
+--- 1. Lead-Lag Analysis ---
+                    Avg_Fwd_Ret
+Signal    To   Lag
+Growth    DOWN 20      0.002409
+               40     -0.005284
+               60      0.013697
+          UP   20      0.022947
+               40      0.011873
+               60      0.005420
+Inflation DOWN 20      0.000986
+               40     -0.022151
+               60     -0.016694
+          UP   20      0.009896
+               40      0.007530
+               60      0.002348
+
+--- 2. Sector Matrix Audit ---
+        Regime Sector  Mean_Ann  Win_Rate    Max_DD  Alpha_vs_Idx
+0   GOLDILOCKS    XLK  0.138774  0.519608 -0.065203      0.014804
+1   GOLDILOCKS    XLY  0.162656  0.480392 -0.061259      0.038685
+2   GOLDILOCKS    XLF  0.203110  0.539216 -0.087622      0.079139
+3    REFLATION    XLE  0.229173  0.528613 -0.194087      0.079879
+4    REFLATION    XLB  0.201422  0.536372 -0.143184      0.052128
+5    REFLATION    XLF  0.117526  0.504365 -0.256548     -0.031768
+6  STAGFLATION    DBC  0.657013  0.575000 -0.094394      0.696179
+7    DEFLATION    XLY  0.028323  0.479545 -0.485320      0.211465
+
+--- 3. Persistence & Stability ---
+Avg Regime Duration (1% Hyst): 34.7 days
+Faux signaux (<10d) 0% Hyst: 87
+Faux signaux (<10d) 1% Hyst: 25
+
+=========================================
+   AUDIT: US | P2 (2013-2019)
+=========================================
+
+--- 1. Lead-Lag Analysis ---
+                    Avg_Fwd_Ret
+Signal    To   Lag
+Growth    DOWN 20     -0.014532
+               40      0.032057
+               60      0.059432
+          UP   20     -0.023064
+               40      0.023036
+               60      0.073294
+Inflation DOWN 20      0.021557
+               40      0.015670
+               60      0.006273
+          UP   20      0.011516
+               40      0.027804
+               60      0.029850
+
+--- 2. Sector Matrix Audit ---
+        Regime Sector  Mean_Ann  Win_Rate    Max_DD  Alpha_vs_Idx
+0   GOLDILOCKS    XLK  0.196965  0.547192 -0.095634      0.080947
+1   GOLDILOCKS    XLY  0.160135  0.554361 -0.092919      0.044117
+2   GOLDILOCKS    XLF  0.133951  0.508961 -0.122393      0.017933
+3    REFLATION    XLE  0.114170  0.518784 -0.146354     -0.040753
+4    REFLATION    XLB  0.154827  0.525939 -0.104072     -0.000096
+5    REFLATION    XLF  0.231236  0.545617 -0.099768      0.076313
+6  STAGFLATION    DBC  1.766858  0.500000  0.000000      1.807976
+7    DEFLATION    XLY  0.039716  0.519231 -0.165879      0.048391
+8    DEFLATION   XLRE  0.255328  0.572289 -0.134224      0.264003
+9    DEFLATION    XLC -0.024973  0.506173 -0.153956     -0.016299
+
+--- 3. Persistence & Stability ---
+Avg Regime Duration (1% Hyst): 47.2 days
+Faux signaux (<10d) 0% Hyst: 56
+Faux signaux (<10d) 1% Hyst: 11
+
+=========================================
+   AUDIT: US | P3 (2020-2022)
+=========================================
+
+--- 1. Lead-Lag Analysis ---
+                    Avg_Fwd_Ret
+Signal    To   Lag
+Growth    DOWN 20      0.031497
+               40     -0.041469
+               60     -0.039197
+          UP   20     -0.011903
+               40     -0.045035
+               60     -0.000496
+Inflation DOWN 20      0.004588
+               40      0.031302
+               60      0.031425
+          UP   20     -0.007653
+               40      0.040182
+               60     -0.022915
+
+--- 2. Sector Matrix Audit ---
+        Regime Sector  Mean_Ann  Win_Rate    Max_DD  Alpha_vs_Idx
+0   GOLDILOCKS    XLK  0.287159  0.500000 -0.102057      0.069483
+1   GOLDILOCKS    XLY  0.229403  0.553030 -0.091206      0.011727
+2   GOLDILOCKS    XLF  0.380906  0.530303 -0.088367      0.163230
+3    REFLATION    XLE  0.620632  0.537445 -0.139145      0.448258
+4    REFLATION    XLB  0.248700  0.528634 -0.093265      0.076325
+5    REFLATION    XLF  0.302019  0.541850 -0.086828      0.129644
+6  STAGFLATION    DBC  0.176200  0.537383 -0.230072      0.304643
+7    DEFLATION    XLY -0.710759  0.666667 -0.017050     -0.404945
+8    DEFLATION   XLRE  0.961833  1.000000  0.000000      1.267647
+9    DEFLATION    XLC -0.181378  0.666667 -0.012284      0.124435
+
+--- 3. Persistence & Stability ---
+Avg Regime Duration (1% Hyst): 27.4 days
+Faux signaux (<10d) 0% Hyst: 27
+Faux signaux (<10d) 1% Hyst: 7
+
+=========================================
+   AUDIT: US | P4 (2023-2026)
+=========================================
+
+--- 1. Lead-Lag Analysis ---
+                    Avg_Fwd_Ret
+Signal    To   Lag
+Growth    DOWN 20      0.082149
+               40      0.076479
+               60      0.078217
+          UP   20      0.048824
+               40      0.046334
+               60      0.056609
+Inflation DOWN 20      0.032863
+               40      0.038161
+               60      0.065323
+          UP   20     -0.005168
+               40      0.050707
+               60      0.044612
+
+--- 2. Sector Matrix Audit ---
+        Regime Sector  Mean_Ann  Win_Rate    Max_DD  Alpha_vs_Idx
+0   GOLDILOCKS    XLK  0.321042  0.581933 -0.169724      0.058578
+1   GOLDILOCKS    XLY  0.282383  0.535714 -0.128619      0.019919
+2   GOLDILOCKS    XLF  0.265041  0.548319 -0.074371      0.002578
+3    REFLATION    XLE  0.751879  0.600000 -0.061684      0.808879
+4    REFLATION    XLB  0.089214  0.540000 -0.082618      0.146214
+5    REFLATION    XLF -0.176064  0.470000 -0.124352     -0.119064
+6  STAGFLATION    DBC -0.291872  0.523810 -0.109934     -0.123213
+7    DEFLATION    XLY  0.536162  0.625000 -0.019262     -0.026600
+8    DEFLATION   XLRE  0.385371  0.500000 -0.013594     -0.177391
+9    DEFLATION    XLC  0.583835  0.625000 -0.005119      0.021072
+
+--- 3. Persistence & Stability ---
+Avg Regime Duration (1% Hyst): 56.8 days
+Faux signaux (<10d) 0% Hyst: 28
+Faux signaux (<10d) 1% Hyst: 5
+
+=========================================
+   AUDIT: EU | P1 (2005-2012)
+=========================================
+
+--- 1. Lead-Lag Analysis ---
+                    Avg_Fwd_Ret
+Signal    To   Lag
+Growth    DOWN 20      0.029320
+               40     -0.021381
+               60      0.006419
+          UP   20      0.026039
+               40     -0.006466
+               60      0.005525
+Inflation DOWN 20      0.020249
+               40      0.012562
+               60      0.065366
+          UP   20     -0.008154
+               40     -0.009339
+               60      0.033724
+
+--- 2. Sector Matrix Audit ---
+       Regime   Sector  Mean_Ann  Win_Rate    Max_DD  Alpha_vs_Idx
+0  GOLDILOCKS  EXV4.DE  0.202002  0.521484 -0.061626      0.032321
+1  GOLDILOCKS  EXV3.DE  0.265379  0.537109 -0.115560      0.095698
+2  GOLDILOCKS  EXI5.DE  0.264029  0.511719 -0.091113      0.094348
+3   REFLATION  EXV1.DE  0.917301  0.333333 -0.004397     -0.741718
+4   REFLATION  EXV6.DE  1.789324  0.666667  0.000000      0.130305
+5   DEFLATION  EXV4.DE  0.048479  0.516393 -0.118019      0.024221
+6   DEFLATION  EXV2.DE -0.069627  0.479508 -0.148453     -0.093885
+7   DEFLATION  EXV7.DE  0.270073  0.524590 -0.107328      0.245815
+
+--- 3. Persistence & Stability ---
+Avg Regime Duration (1% Hyst): 34.8 days
+Faux signaux (<10d) 0% Hyst: 61
+Faux signaux (<10d) 1% Hyst: 16
+
+=========================================
+   AUDIT: EU | P2 (2013-2019)
+=========================================
+
+--- 1. Lead-Lag Analysis ---
+                    Avg_Fwd_Ret
+Signal    To   Lag
+Growth    DOWN 20      0.017337
+               40      0.042824
+               60      0.015087
+          UP   20     -0.003982
+               40      0.053229
+               60      0.014252
+Inflation DOWN 20     -0.012500
+               40      0.007204
+               60      0.034390
+          UP   20      0.004114
+               40      0.025868
+               60      0.020818
+
+--- 2. Sector Matrix Audit ---
+       Regime   Sector  Mean_Ann  Win_Rate    Max_DD  Alpha_vs_Idx
+0  GOLDILOCKS  EXV4.DE  0.177455  0.532051 -0.144700      0.062620
+1  GOLDILOCKS  EXV3.DE  0.167360  0.530983 -0.125921      0.052524
+2  GOLDILOCKS  EXI5.DE  0.124497  0.506410 -0.126293      0.009662
+3   REFLATION  EXV1.DE  0.673927  0.537313 -0.051764      0.346939
+4   REFLATION  EXV6.DE  0.766563  0.477612 -0.050358      0.439575
+5   REFLATION  SXRS.DE -0.067365  0.444444 -0.008108     -0.394353
+6   DEFLATION  EXV4.DE  0.089832  0.507645 -0.105406      0.147958
+7   DEFLATION  EXV2.DE -0.009106  0.486239 -0.142477      0.049020
+8   DEFLATION  EXV7.DE  0.050482  0.507645 -0.197345      0.108608
+
+--- 3. Persistence & Stability ---
+Avg Regime Duration (1% Hyst): 43.4 days
+Faux signaux (<10d) 0% Hyst: 55
+Faux signaux (<10d) 1% Hyst: 15
+
+=========================================
+   AUDIT: EU | P3 (2020-2022)
+=========================================
+
+--- 1. Lead-Lag Analysis ---
+                    Avg_Fwd_Ret
+Signal    To   Lag
+Growth    DOWN 20      0.016281
+               40     -0.015770
+               60     -0.004570
+          UP   20      0.020334
+               40     -0.020969
+               60      0.021870
+Inflation DOWN 20     -0.014032
+               40      0.046205
+               60      0.063470
+          UP   20      0.014169
+               40     -0.003628
+               60     -0.068336
+
+--- 2. Sector Matrix Audit ---
+        Regime   Sector  Mean_Ann  Win_Rate    Max_DD  Alpha_vs_Idx
+0   GOLDILOCKS  EXV4.DE -0.076529  0.538462 -0.079097     -0.114745
+1   GOLDILOCKS  EXV3.DE  0.178475  0.538462 -0.086345      0.140258
+2   GOLDILOCKS  EXI5.DE -0.215815  0.461538 -0.098072     -0.254032
+3    REFLATION  EXV1.DE  0.494399  0.563107 -0.096911      0.227345
+4    REFLATION  EXV6.DE  0.599545  0.543689 -0.131464      0.332492
+5    REFLATION  SXRS.DE  0.190751  0.543689 -0.131315     -0.076303
+6  STAGFLATION  SXRS.DE  0.326397  0.551402 -0.154582      0.488159
+
+--- 3. Persistence & Stability ---
+Avg Regime Duration (1% Hyst): 52.2 days
+Faux signaux (<10d) 0% Hyst: 21
+Faux signaux (<10d) 1% Hyst: 5
+
+=========================================
+   AUDIT: EU | P4 (2023-2026)
+=========================================
+
+--- 1. Lead-Lag Analysis ---
+                    Avg_Fwd_Ret
+Signal    To   Lag
+Growth    DOWN 20      0.019744
+               40     -0.005000
+               60      0.031489
+          UP   20      0.006760
+               40      0.021183
+               60      0.038019
+Inflation DOWN 20     -0.008664
+               40      0.034164
+               60      0.034395
+          UP   20     -0.034240
+               40      0.044519
+               60      0.042954
+
+--- 2. Sector Matrix Audit ---
+        Regime   Sector  Mean_Ann  Win_Rate    Max_DD  Alpha_vs_Idx
+0   GOLDILOCKS  EXV4.DE  0.056146  0.513410 -0.122820     -0.196053
+1   GOLDILOCKS  EXV3.DE  0.238334  0.528736 -0.164441     -0.013866
+2   GOLDILOCKS  EXI5.DE  0.024400  0.478927 -0.169261     -0.227799
+3    REFLATION  EXV1.DE  0.413325  0.583333 -0.136634      0.333141
+4    REFLATION  EXV6.DE  0.391068  0.539855 -0.200528      0.310884
+5    REFLATION  SXRS.DE  0.186266  0.507246 -0.163488      0.106082
+6  STAGFLATION  SXRS.DE -0.047633  0.370370 -0.049841     -0.384655
+7    DEFLATION  EXV4.DE -0.382307  0.484848 -0.171652     -0.305939
+8    DEFLATION  EXV2.DE  0.228950  0.530303 -0.094845      0.305317
+9    DEFLATION  EXV7.DE -0.132013  0.454545 -0.116095     -0.055645
+
+--- 3. Persistence & Stability ---
+Avg Regime Duration (1% Hyst): 27.3 days
+Faux signaux (<10d) 0% Hyst: 28
+Faux signaux (<10d) 1% Hyst: 8
+
+=========================================
+   ANALYSE DE DÉVIATION (DRIFT)
+=========================================
+
+--- Drift analysis (US) ---
+        Regime Sector  Alpha_vs_Idx_P2  Alpha_vs_Idx_P4
+0   GOLDILOCKS    XLK         0.080947         0.058578
+1   GOLDILOCKS    XLY         0.044117         0.019919
+2   GOLDILOCKS    XLF         0.017933         0.002578
+3    REFLATION    XLE        -0.040753         0.808879
+4    REFLATION    XLB        -0.000096         0.146214
+5    REFLATION    XLF         0.076313        -0.119064
+6  STAGFLATION    DBC         1.807976        -0.123213
+7    DEFLATION    XLY         0.048391        -0.026600
+8    DEFLATION   XLRE         0.264003        -0.177391
+9    DEFLATION    XLC        -0.016299         0.021072
+
+Secteurs avec Alpha négatif en P4:
+        Regime Sector  Alpha_vs_Idx_P4
+5    REFLATION    XLF        -0.119064
+6  STAGFLATION    DBC        -0.123213
+7    DEFLATION    XLY        -0.026600
+8    DEFLATION   XLRE        -0.177391
+
+--- Drift analysis (EU) ---
+       Regime   Sector  Alpha_vs_Idx_P2  Alpha_vs_Idx_P4
+0  GOLDILOCKS  EXV4.DE         0.062620        -0.196053
+1  GOLDILOCKS  EXV3.DE         0.052524        -0.013866
+2  GOLDILOCKS  EXI5.DE         0.009662        -0.227799
+3   REFLATION  EXV1.DE         0.346939         0.333141
+4   REFLATION  EXV6.DE         0.439575         0.310884
+5   REFLATION  SXRS.DE        -0.394353         0.106082
+6   DEFLATION  EXV4.DE         0.147958        -0.305939
+7   DEFLATION  EXV2.DE         0.049020         0.305317
+8   DEFLATION  EXV7.DE         0.108608        -0.055645
+
+Secteurs avec Alpha négatif en P4:
+       Regime   Sector  Alpha_vs_Idx_P4
+0  GOLDILOCKS  EXV4.DE        -0.196053
+1  GOLDILOCKS  EXV3.DE        -0.013866
+2  GOLDILOCKS  EXI5.DE        -0.227799
+6   DEFLATION  EXV4.DE        -0.305939
+8   DEFLATION  EXV7.DE        -0.055645
+
+=========================================
+   REGIME TRANSITION LOG
+=========================================
+
+--- Transition Log (US) ---
+           Date       Regime        Price  Inflation_Ratio
+0    2006-04-04    REFLATION  1305.930054         1.014057
+1    2006-06-12    DEFLATION  1237.439941         0.976335
+2    2006-06-29  STAGFLATION  1272.869995         1.028749
+3    2006-07-03    REFLATION  1280.189941         1.045920
+4    2006-07-13  STAGFLATION  1242.280029         1.028715
+5    2006-08-15    REFLATION  1285.579956         1.037296
+6    2006-10-03   GOLDILOCKS  1334.109985         0.995912
+7    2006-10-09    REFLATION  1350.660034         1.020663
+8    2007-08-03  STAGFLATION  1433.060059         1.161332
+9    2007-08-06    REFLATION  1467.670044         1.178012
+10   2007-08-14  STAGFLATION  1426.540039         1.165341
+11   2007-08-24    REFLATION  1479.369995         1.207379
+12   2007-08-28  STAGFLATION  1432.359985         1.169755
+13   2007-08-31    REFLATION  1473.989990         1.203075
+14   2007-11-09  STAGFLATION  1453.699951         1.264159
+15   2007-12-06    REFLATION  1507.339966         1.300440
+16   2007-12-14  STAGFLATION  1467.949951         1.275459
+17   2008-01-16    DEFLATION  1373.199951         1.218804
+18   2008-02-01  STAGFLATION  1395.420044         1.261686
+19   2008-02-05    DEFLATION  1336.640015         1.213189
+20   2008-02-19  STAGFLATION  1348.780029         1.278413
+21   2008-03-10    DEFLATION  1273.369995         1.231458
+22   2008-03-11  STAGFLATION  1320.650024         1.292676
+23   2008-03-17    DEFLATION  1276.599976         1.229287
+24   2008-03-18  STAGFLATION  1330.739990         1.287970
+25   2008-03-19    DEFLATION  1298.420044         1.223367
+26   2008-03-25  STAGFLATION  1352.989990         1.275067
+27   2008-07-09    DEFLATION  1244.689941         1.271763
+28   2009-05-01  STAGFLATION   877.520020         0.778476
+29   2009-06-01    REFLATION   942.869995         0.886424
+30   2010-05-07   GOLDILOCKS  1110.880005         0.969852
+31   2010-05-10    REFLATION  1159.729980         1.010824
+32   2010-05-18   GOLDILOCKS  1120.800049         0.960782
+33   2010-05-20    DEFLATION  1071.589966         0.916897
+34   2010-08-02    REFLATION  1125.859985         0.993883
+35   2010-08-11    DEFLATION  1089.469971         0.951292
+36   2010-09-13  STAGFLATION  1121.900024         0.988734
+37   2010-09-20    REFLATION  1142.709961         0.993804
+38   2011-06-15   GOLDILOCKS  1265.420044         1.180993
+39   2011-06-29    REFLATION  1307.410034         1.218028
+40   2011-08-02    DEFLATION  1254.050049         1.193467
+41   2012-01-03   GOLDILOCKS  1277.060059         1.132773
+42   2012-01-10    REFLATION  1292.079956         1.151099
+43   2012-05-15   GOLDILOCKS  1330.660034         1.111826
+44   2012-07-03    REFLATION  1374.020020         1.152208
+45   2012-07-10   GOLDILOCKS  1341.469971         1.113957
+46   2012-07-17    REFLATION  1363.670044         1.152327
+47   2012-11-13   GOLDILOCKS  1374.530029         1.185824
+48   2012-11-14    DEFLATION  1355.489990         1.172293
+49   2012-11-23    REFLATION  1409.150024         1.218730
+50   2014-10-01   GOLDILOCKS  1946.160034         1.520262
+51   2014-10-13    DEFLATION  1874.739990         1.436659
+52   2014-10-21   GOLDILOCKS  1941.280029         1.491916
+53   2015-08-20    DEFLATION  2035.729980         1.278363
+54   2015-10-28   GOLDILOCKS  2090.350098         1.249956
+55   2015-11-13    DEFLATION  2023.040039         1.263630
+56   2015-11-20   GOLDILOCKS  2089.169922         1.234942
+57   2015-12-11    DEFLATION  2012.369995         1.197585
+58   2016-03-17   GOLDILOCKS  2040.589966         1.167461
+59   2016-04-22    REFLATION  2091.580078         1.224604
+60   2016-05-09   GOLDILOCKS  2058.689941         1.187040
+61   2016-05-17    REFLATION  2047.209961         1.232585
+62   2016-06-27  STAGFLATION  2000.540039         1.208720
+63   2016-06-29    REFLATION  2070.770020         1.218514
+64   2016-07-06   GOLDILOCKS  2099.729980         1.192169
+65   2016-08-16    REFLATION  2178.149902         1.198100
+66   2016-09-27   GOLDILOCKS  2159.929932         1.167033
+67   2016-09-29    REFLATION  2151.129883         1.195649
+68   2017-03-10   GOLDILOCKS  2372.600098         1.216512
+69   2017-09-25    REFLATION  2496.659912         1.177060
+70   2017-11-13   GOLDILOCKS  2584.840088         1.136003
+71   2017-12-21    REFLATION  2684.570068         1.163956
+72   2018-02-28   GOLDILOCKS  2713.830078         1.128112
+73   2018-04-10    REFLATION  2656.870117         1.152104
+74   2018-05-29   GOLDILOCKS  2689.860107         1.138115
+75   2018-10-11    DEFLATION  2728.370117         1.099636
+76   2018-10-16   GOLDILOCKS  2809.919922         1.073247
+77   2018-10-24    DEFLATION  2656.100098         1.038552
+78   2018-11-07   GOLDILOCKS  2813.889893         1.043218
+79   2018-11-12    DEFLATION  2726.219971         1.041527
+80   2019-02-15   GOLDILOCKS  2775.600098         1.002359
+81   2019-06-03    DEFLATION  2744.449951         0.934591
+82   2019-06-04   GOLDILOCKS  2803.270020         0.933542
+83   2020-02-27    DEFLATION  2978.760010         0.756637
+84   2020-03-02   GOLDILOCKS  3090.229980         0.745793
+85   2020-03-03    DEFLATION  3003.370117         0.748091
+86   2020-03-04   GOLDILOCKS  3130.120117         0.735963
+87   2020-03-05    DEFLATION  3023.939941         0.733093
+88   2020-05-29   GOLDILOCKS  3044.310059         0.655820
+89   2020-11-24    REFLATION  3635.409912         0.644879
+90   2020-11-30   GOLDILOCKS  3621.629883         0.618273
+91   2020-12-04    REFLATION  3699.120117         0.641358
+92   2020-12-22   GOLDILOCKS  3687.260010         0.624693
+93   2021-01-05    REFLATION  3726.860107         0.649233
+94   2021-07-19   GOLDILOCKS  4258.490234         0.671975
+95   2021-08-10    REFLATION  4436.750000         0.696462
+96   2021-08-18   GOLDILOCKS  4400.270020         0.678802
+97   2021-09-27    REFLATION  4443.109863         0.715528
+98   2021-11-04   GOLDILOCKS  4680.060059         0.701123
+99   2022-01-05    REFLATION  4700.580078         0.710905
+100  2022-01-25  STAGFLATION  4356.450195         0.796413
+101  2022-01-31    REFLATION  4515.549805         0.772947
+102  2022-02-14  STAGFLATION  4401.669922         0.821504
+103  2022-03-25    REFLATION  4543.060059         0.875634
+104  2022-04-11  STAGFLATION  4412.529785         0.874185
+105  2022-08-04    DEFLATION  4151.939941         0.830450
+106  2022-08-09  STAGFLATION  4122.470215         0.859781
+107  2022-11-30    REFLATION  4080.110107         1.037064
+108  2022-12-06  STAGFLATION  3941.260010         1.023968
+109  2023-01-23    REFLATION  4019.810059         1.052565
+110  2023-02-02   GOLDILOCKS  4179.759766         0.972570
+111  2023-02-10    REFLATION  4090.459961         1.014147
+112  2023-02-15   GOLDILOCKS  4147.600098         0.986318
+113  2023-03-01    REFLATION  3951.389893         1.030264
+114  2023-03-09   GOLDILOCKS  3918.320068         0.994186
+115  2023-03-10    DEFLATION  3861.590088         1.000281
+116  2023-03-21   GOLDILOCKS  4002.870117         0.935120
+117  2023-09-21    REFLATION  4330.000000         0.936356
+118  2023-10-25  STAGFLATION  4186.770020         0.948400
+119  2023-11-02    REFLATION  4317.779785         0.922242
+120  2023-11-06   GOLDILOCKS  4365.979980         0.907376
+121  2024-03-15    REFLATION  5117.089844         0.881611
+122  2024-05-15   GOLDILOCKS  5308.149902         0.874002
+123  2025-03-06    REFLATION  5738.520020         0.813941
+124  2025-03-10  STAGFLATION  5614.560059         0.828325
+125  2025-04-30    DEFLATION  5569.060059         0.793965
+126  2025-05-12   GOLDILOCKS  5844.189941         0.780458
+127  2026-01-14    REFLATION  6926.600098         0.753342
+
+--- Transition Log (EU) ---
+           Date       Regime        Price  Inflation_Ratio
+0    2009-04-17    DEFLATION  2341.149902         1.688501
+1    2009-06-02   GOLDILOCKS  2534.169922         1.664355
+2    2009-06-17    DEFLATION  2383.709961         1.689987
+3    2009-06-19   GOLDILOCKS  2434.770020         1.702609
+4    2009-06-22    DEFLATION  2359.280029         1.714759
+5    2009-06-24   GOLDILOCKS  2418.459961         1.707403
+6    2009-07-07    DEFLATION  2320.899902         1.725726
+7    2009-07-14   GOLDILOCKS  2370.709961         1.726838
+8    2010-02-05    DEFLATION  2631.639893         1.511132
+9    2010-02-17   GOLDILOCKS  2762.250000         1.491922
+10   2010-02-25    DEFLATION  2684.419922         1.504804
+11   2010-03-01   GOLDILOCKS  2772.699951         1.479627
+12   2010-04-28    DEFLATION  2788.540039         1.412899
+13   2010-05-20  STAGFLATION  2569.580078         1.530803
+14   2010-05-31    DEFLATION  2610.260010         1.472509
+15   2010-07-01  STAGFLATION  2518.649902         1.503116
+16   2010-07-07    DEFLATION  2634.389893         1.464366
+17   2010-08-09   GOLDILOCKS  2827.270020         1.414548
+18   2010-08-11    DEFLATION  2724.159912         1.458791
+19   2010-08-25  STAGFLATION  2587.399902         1.479484
+20   2010-09-01    DEFLATION  2715.270020         1.439287
+21   2010-10-13   GOLDILOCKS  2840.550049         1.363765
+22   2010-11-26    DEFLATION  2736.959961         1.364905
+23   2010-12-07   GOLDILOCKS  2802.739990         1.332109
+24   2011-03-16    DEFLATION  2721.239990         1.358050
+25   2011-03-21   GOLDILOCKS  2860.810059         1.306159
+26   2011-05-23    DEFLATION  2794.260010         1.275717
+27   2011-06-03  STAGFLATION  2789.110107         1.317524
+28   2012-01-17    DEFLATION  2396.629883         1.431745
+29   2012-02-02   GOLDILOCKS  2478.149902         1.410308
+30   2012-04-10    DEFLATION  2321.530029         1.398093
+31   2012-05-17  STAGFLATION  2175.340088         1.480501
+32   2012-06-19    DEFLATION  2198.010010         1.421312
+33   2012-08-03   GOLDILOCKS  2372.580078         1.333339
+34   2012-11-16    REFLATION  2427.320068         1.390796
+35   2012-11-21   GOLDILOCKS  2519.679932         1.350071
+36   2013-06-20    DEFLATION  2586.449951         1.222279
+37   2013-07-09   GOLDILOCKS  2664.139893         1.169280
+38   2014-08-04    DEFLATION  3070.459961         0.998937
+39   2014-08-08  STAGFLATION  3006.830078         1.015883
+40   2014-08-18    DEFLATION  3073.449951         0.986251
+41   2014-08-25   GOLDILOCKS  3165.469971         0.957474
+42   2014-10-02    DEFLATION  3106.419922         0.981351
+43   2014-10-09  STAGFLATION  3042.449951         1.004762
+44   2014-10-30    DEFLATION  3035.899902         0.978608
+45   2014-11-21   GOLDILOCKS  3194.219971         0.916186
+46   2014-12-12    DEFLATION  3067.320068         0.925063
+47   2014-12-23   GOLDILOCKS  3192.469971         0.886067
+48   2015-01-05    DEFLATION  3023.139893         0.905908
+49   2015-01-16   GOLDILOCKS  3202.239990         0.863343
+50   2015-07-07    DEFLATION  3294.189941         0.803601
+51   2015-07-09   GOLDILOCKS  3420.030029         0.789016
+52   2015-08-20  STAGFLATION  3353.479980         0.798281
+53   2015-10-29    DEFLATION  3413.389893         0.765963
+54   2015-12-09  STAGFLATION  3277.209961         0.776387
+55   2016-05-25    DEFLATION  3061.600098         0.800615
+56   2016-06-10  STAGFLATION  2911.110107         0.834628
+57   2016-06-23    DEFLATION  3037.860107         0.804375
+58   2016-06-24  STAGFLATION  2776.090088         0.870020
+59   2016-07-25    DEFLATION  2973.219971         0.804150
+60   2016-09-02   GOLDILOCKS  3079.739990         0.789193
+61   2016-09-14    DEFLATION  2964.899902         0.821621
+62   2016-09-22   GOLDILOCKS  3051.689941         0.791185
+63   2016-10-07    REFLATION  3000.570068         0.830978
+64   2016-12-15   GOLDILOCKS  3249.739990         0.812994
+65   2017-08-29    REFLATION  3388.219971         0.757079
+66   2017-09-11   GOLDILOCKS  3495.189941         0.734460
+67   2018-02-05  STAGFLATION  3478.770020         0.734072
+68   2018-04-27    DEFLATION  3518.780029         0.713614
+69   2018-05-02   GOLDILOCKS  3553.790039         0.709575
+70   2018-05-28    DEFLATION  3482.639893         0.704032
+71   2019-03-05   GOLDILOCKS  3327.189941         0.651074
+72   2019-04-12    REFLATION  3447.830078         0.658940
+73   2019-04-26   GOLDILOCKS  3500.409912         0.639735
+74   2020-02-27    DEFLATION  3455.919922         0.544001
+75   2020-07-21   GOLDILOCKS  3405.350098         0.515465
+76   2020-07-24    DEFLATION  3310.889893         0.524670
+77   2020-08-26   GOLDILOCKS  3356.760010         0.517930
+78   2020-09-04  STAGFLATION  3260.590088         0.536306
+79   2020-09-09    REFLATION  3324.830078         0.535597
+80   2020-09-21  STAGFLATION  3160.949951         0.526699
+81   2020-10-09    REFLATION  3273.120117         0.524488
+82   2020-10-15  STAGFLATION  3192.689941         0.520003
+83   2020-11-05    REFLATION  3215.560059         0.547261
+84   2021-07-19   GOLDILOCKS  3928.530029         0.595704
+85   2021-09-29    REFLATION  4080.219971         0.615333
+86   2022-01-24  STAGFLATION  4054.360107         0.696261
+87   2022-02-01    REFLATION  4224.450195         0.701395
+88   2022-02-04  STAGFLATION  4086.580078         0.709539
+89   2022-02-09    REFLATION  4204.089844         0.714310
+90   2022-02-14  STAGFLATION  4064.449951         0.729074
+91   2022-11-08    REFLATION  3739.280029         0.828766
+92   2023-02-02   GOLDILOCKS  4241.120117         0.788568
+93   2023-02-10    REFLATION  4197.939941         0.811665
+94   2023-03-15   GOLDILOCKS  4034.919922         0.779293
+95   2023-07-20    REFLATION  4373.729980         0.810036
+96   2023-09-25  STAGFLATION  4167.370117         0.839327
+97   2023-11-15    REFLATION  4315.529785         0.806611
+98   2023-11-22   GOLDILOCKS  4352.020020         0.790943
+99   2024-04-03    REFLATION  5069.250000         0.806809
+100  2024-06-04   GOLDILOCKS  4953.370117         0.795446
+101  2024-08-02    DEFLATION  4638.700195         0.755695
+102  2024-08-16   GOLDILOCKS  4840.520020         0.740338
+103  2024-09-06    DEFLATION  4738.060059         0.731022
+104  2024-09-19   GOLDILOCKS  4943.379883         0.726269
+105  2024-10-31    DEFLATION  4827.629883         0.744296
+106  2024-12-06   GOLDILOCKS  4977.779785         0.711911
+107  2024-12-20    DEFLATION  4862.279785         0.722999
+108  2025-01-06   GOLDILOCKS  4986.640137         0.729151
+109  2025-01-24    REFLATION  5219.370117         0.756516
+110  2025-02-03   GOLDILOCKS  5217.910156         0.733408
+111  2025-02-13    REFLATION  5500.500000         0.749554
+112  2025-04-04    DEFLATION  4878.310059         0.729541
+113  2025-04-23   GOLDILOCKS  5098.740234         0.737054
+114  2025-04-25    REFLATION  5154.120117         0.746983
+115  2025-05-02   GOLDILOCKS  5285.189941         0.723946
+116  2025-05-12    REFLATION  5392.359863         0.749669
+117  2025-05-27   GOLDILOCKS  5415.450195         0.725690
+118  2025-07-23    REFLATION  5344.250000         0.751814
