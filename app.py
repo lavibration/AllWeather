@@ -2,8 +2,9 @@ import streamlit as st
 import pandas as pd
 import plotly.express as px
 import plotly.graph_objects as go
+import numpy as np
 
-st.set_page_config(page_title="Financial Strategy Dashboard - Mirror Architecture", layout="wide")
+st.set_page_config(page_title="Financial Strategy Dashboard - Production", layout="wide")
 
 @st.cache_data
 def load_data():
@@ -23,9 +24,8 @@ tab1, tab2, tab3, tab4 = st.tabs(["🚀 Cockpit", "📊 Signaux", "📈 Performa
 COLORS = {"GOLDILOCKS": "green", "REFLATION": "blue", "STAGFLATION": "orange", "DEFLATION": "gray", "UNKNOWN": "white"}
 
 with tab1:
-    st.header("Cockpit Miroir (US vs EU)")
+    st.header("Cockpit Miroir (US vs EU) - Matrice Optimisée")
     col1, col2 = st.columns(2)
-    # Using 'Regime' from signals_analysis for the "Live" regime
     cur_us, cur_eu = sig["Regime_US"].iloc[-1], sig["Regime_EU"].iloc[-1]
     with col1:
         st.subheader("Poche États-Unis")
@@ -40,21 +40,24 @@ with tab1:
         base = {"Or (GLD)": 10.0}
         macro_map = {
             "US": {
-                "GOLDILOCKS": {"Tech (XLK)": 30, "Disc (XLY)": 30, "Fin (XLF)": 30},
-                "REFLATION": {"Eng (XLE)": 30, "Mat (XLB)": 30, "Fin (XLF)": 30},
-                "STAGFLATION": {"Commodities": 30, "CASH": 60},
-                "DEFLATION": {"Disc (XLY)": 30, "RE (XLRE)": 30, "Comm (XLC)": 30}
+                "GOLDILOCKS": {"XLK (Tech)": 30.0, "XLY (Conso)": 30.0, "XLF (Fin)": 2.25, "CASH": 27.75},
+                "REFLATION": {"XLE (Eng)": 30.0, "DBC (Comm)": 30.0, "XLU (Util)": 29.5, "CASH": 0.5},
+                "STAGFLATION": {"XLY (Conso)": 30.0, "XLRE (Immo)": 30.0, "XLF (Fin)": 28.3, "CASH": 1.7},
+                "DEFLATION": {"XLK (Tech)": 30.0, "XLC (Comm)": 30.0, "XLU (Util)": 18.4, "CASH": 11.6}
             },
             "EU": {
-                "GOLDILOCKS": {"Santé": 30, "Tech": 30, "RE": 30},
-                "REFLATION": {"Banks": 30, "Resources": 30, "Commodities": 30},
-                "STAGFLATION": {"Commodities": 30, "CASH": 60},
-                "DEFLATION": {"Santé": 30, "Auto": 30, "Telecoms": 30}
+                "GOLDILOCKS": {"EXV1 (Banks)": 30.0, "EXV9 (Util)": 30.0, "EXV8 (Conso)": 25.7, "CASH": 4.3},
+                "REFLATION": {"EXV1 (Banks)": 30.0, "EXV6 (Res)": 30.0, "EXW1 (Ins)": 5.0, "CASH": 25.0},
+                "STAGFLATION": {"EXI5 (Immo)": 30.0, "EXV8 (Conso)": 30.0, "EXV3 (Tech)": 28.6, "CASH": 1.4},
+                "DEFLATION": {"EXV9 (Util)": 30.0, "EXV3 (Tech)": 30.0, "EXV1 (Banks)": 29.2, "CASH": 0.8}
             }
         }
-        alloc = macro_map[zone].get(regime, {"CASH": 90})
+        # Poids convertis pour 90% (e.g. 33.3% * 0.9 = 30%)
+        alloc = macro_map[zone].get(regime, {"CASH": 90.0})
         base.update(alloc)
-        return px.pie(pd.DataFrame(list(base.items()), columns=["Asset", "Weight"]), values="Weight", names="Asset", title=f"Allocation {zone} ({regime})")
+        df_pie = pd.DataFrame(list(base.items()), columns=["Asset", "Weight"])
+        return px.pie(df_pie, values="Weight", names="Asset", title=f"Cible {zone} ({regime})",
+                      color_discrete_sequence=px.colors.qualitative.Pastel)
 
     with col1: st.plotly_chart(get_pie(cur_us, "US"))
     with col2: st.plotly_chart(get_pie(cur_eu, "EU"))
@@ -80,6 +83,7 @@ with tab2:
     fig_g.add_trace(go.Scatter(x=m.index, y=m*1.01, name="+1%", line=dict(dash='dash', color='green')))
     fig_g.add_trace(go.Scatter(x=m.index, y=m*0.99, name="-1%", line=dict(dash='dash', color='red')))
     st.plotly_chart(fig_g, use_container_width=True)
+
     st.subheader("Signal Inflation")
     r, md = sig[f"Ratio_{z}"], sig[f"Median_{z}"]
     fig_i = go.Figure()
@@ -101,10 +105,10 @@ with tab3:
             st.metric(f"Sharpe {z}", f"{s['Sharpe']:.2f}")
             st.metric(f"Hit Rate {z}", f"{s['Hit_Rate']*100:.2f}%")
 
-    st.subheader("Performance Cumulative")
+    st.subheader("Performance Cumulative (2019-2026)")
     fig = go.Figure()
-    fig.add_trace(go.Scatter(x=bt.index, y=bt["Value_US"], name="Poche US"))
-    fig.add_trace(go.Scatter(x=bt.index, y=bt["Value_EU"], name="Poche EU"))
+    fig.add_trace(go.Scatter(x=bt.index, y=bt["Value_US"], name="Poche US (Optimisée)"))
+    fig.add_trace(go.Scatter(x=bt.index, y=bt["Value_EU"], name="Poche EU (Optimisée)"))
     fig.add_trace(go.Scatter(x=bt.index, y=bt["Benchmark_Value"], name="Benchmark (S&P 500)", line=dict(dash='dot')))
     st.plotly_chart(fig, use_container_width=True)
 
@@ -114,22 +118,21 @@ with tab3:
     st.plotly_chart(px.imshow(p_f, text_auto=".2f", color_continuous_scale="RdYlGn", title=f"Rendement (%) - {z_h}"), use_container_width=True)
 
 with tab4:
-    st.header("Méthodologie Miroir")
+    st.header("Méthodologie Production")
     st.markdown("""
     ### 1. Architecture des Poches Indépendantes
     - **Poche A (US)** : 10 % Or (GLD) + 90 % Macro US.
     - **Poche B (EU)** : 10 % Or (GLD) + 90 % Macro EU.
-    Chaque poche gère son propre risque et ses propres signaux.
 
-    ### 2. Filtres d'Hystérésis (±1,0 %)
-    - **Croissance** : Indice vs MM200.
-    - **Inflation** : Ratio (Beta Positif / Beta Négatif) vs sa Médiane 200j.
+    ### 2. Rééquilibrage Mensuel
+    L'allocation en **Or (10%)** est réinitialisée au début de chaque mois. Intra-mois, le poids dérive selon la performance.
 
-    ### 3. Composition Beta (Pondérations exactes)
-    - **Beta Positif** : Energy (35%), Finance (25%), Materials (20%), Commodities (20%).
-    - **Beta Négatif** : Tech (40%), Cons. Disc (30%), Utilities (15%), RE (15%).
+    ### 3. Filtres d'Hystérésis (±1,0 %)
+    - **Croissance** : Indice vs MM200 (Passage UP > 1.01*MM, Passage DOWN < 0.99*MM).
+    - **Inflation** : Ratio Beta vs sa Médiane 200j (Passage UP > 1.01*M, Passage DOWN < 0.99*M).
 
-    ### 4. Allocation Macro (Cap 33,3 %)
-    Dans les 90 % de chaque poche, 3 secteurs max à 33,3 % chacun (soit 30 % du capital total de la poche). Le reste est en Cash.
-    Frais de transaction de **0,10 %** appliqués sur tout changement de poids.
+    ### 4. Matrice Optimisée (Scan Large)
+    L'univers a été élargi (Assurances, Telecoms, Utilities) et optimisé sur les données récentes (P4 2023-2026) tout en validant la résilience historique (Stress-test P2).
+    - **Frais** : 0,10 % par transaction.
+    - **Cap** : Maximum 33,3 % par secteur dans la poche Macro (soit 30 % du global).
     """)
