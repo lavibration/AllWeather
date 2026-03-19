@@ -98,17 +98,46 @@ def calculate_signals(data, zone):
 def backtest_pocket(data, signals, zone):
     rets = data.pct_change().fillna(0)
     rets["CASH"] = 0.0
-    sig_shifted = signals["Regime"].shift(1).fillna("UNKNOWN")
+
+    # Calculate 5-day rolling return of the index
+    idx_price = data[TICKERS[zone]["Index"]]
+    roll_5d_ret = (idx_price / idx_price.shift(5)) - 1
+
+    sig_regime = signals["Regime"]
+    sig_shifted = sig_regime.shift(1).fillna("UNKNOWN")
+    cb_shifted = roll_5d_ret.shift(1).fillna(0)
+
     val = 1000.0
     cur_w = {}
     history = []
+    cb_active = False
+    last_regime = "UNKNOWN"
+
     for i in range(len(data)):
         reg = sig_shifted.iloc[i]
-        tar_w = {"GLD": 0.10}
-        if reg != "UNKNOWN":
-            for tk, wt in TICKERS[zone]["Regimes"][reg].items():
-                tar_w[tk] = tar_w.get(tk, 0) + wt * 0.90
-        else: tar_w["CASH"] = 0.90
+        cb_signal = cb_shifted.iloc[i]
+
+        # Circuit Breaker Logic:
+        # 1. Trigger if 5d return <= -7%
+        if cb_signal <= -0.07:
+            cb_active = True
+
+        # 2. Reset if the regime signal changes
+        if reg != last_regime:
+            cb_active = False
+            last_regime = reg
+
+        tar_w = {}
+        if cb_active:
+            tar_w = {"CASH": 1.0}
+            display_reg = "CIRCUIT_BREAKER"
+        else:
+            tar_w = {"GLD": 0.10}
+            if reg != "UNKNOWN":
+                for tk, wt in TICKERS[zone]["Regimes"][reg].items():
+                    tar_w[tk] = tar_w.get(tk, 0) + wt * 0.90
+            else: tar_w["CASH"] = 0.90
+            display_reg = reg
 
         tw = sum(tar_w.values())
         if abs(1.0 - tw) > 1e-6: tar_w["CASH"] = tar_w.get("CASH", 0) + (1.0 - tw)
@@ -120,7 +149,7 @@ def backtest_pocket(data, signals, zone):
         r = sum(wt * rets.iloc[i].get(tk, 0) for tk, wt in tar_w.items())
         val *= (1 + r)
         cur_w = tar_w.copy()
-        history.append({"Date": data.index[i], f"Value_{zone}": val, f"Return_{zone}": r, f"Regime_Backtest_{zone}": reg})
+        history.append({"Date": data.index[i], f"Value_{zone}": val, f"Return_{zone}": r, f"Regime_Backtest_{zone}": display_reg})
     return pd.DataFrame(history).set_index("Date")
 
 if __name__ == "__main__":

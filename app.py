@@ -21,23 +21,36 @@ except Exception as e:
     st.stop()
 
 tab1, tab2, tab3, tab4 = st.tabs(["🚀 Cockpit", "📊 Signaux", "📈 Performance", "📜 Méthodologie"])
-COLORS = {"GOLDILOCKS": "rgba(0, 255, 0, 0.2)", "REFLATION": "rgba(0, 0, 255, 0.2)", "STAGFLATION": "rgba(255, 165, 0, 0.2)", "DEFLATION": "rgba(128, 128, 128, 0.2)", "UNKNOWN": "rgba(255, 255, 255, 0)"}
-DOT_COLORS = {"GOLDILOCKS": "green", "REFLATION": "blue", "STAGFLATION": "orange", "DEFLATION": "gray", "UNKNOWN": "white"}
+COLORS = {"GOLDILOCKS": "rgba(0, 255, 0, 0.2)", "REFLATION": "rgba(0, 0, 255, 0.2)", "STAGFLATION": "rgba(255, 165, 0, 0.2)", "DEFLATION": "rgba(128, 128, 128, 0.2)", "UNKNOWN": "rgba(255, 255, 255, 0)", "CIRCUIT_BREAKER": "rgba(255, 0, 0, 0.3)"}
+DOT_COLORS = {"GOLDILOCKS": "green", "REFLATION": "blue", "STAGFLATION": "orange", "DEFLATION": "gray", "UNKNOWN": "white", "CIRCUIT_BREAKER": "red"}
 
 with tab1:
     st.header("Cockpit Miroir (US vs EU)")
     col1, col2 = st.columns(2)
-    cur_us, cur_eu = sig["Regime_US"].iloc[-1], sig["Regime_EU"].iloc[-1]
+
+    # Check if Circuit Breaker is active in Backtest for current status display
+    cur_us = bt["Regime_Backtest_US"].iloc[-1]
+    cur_eu = bt["Regime_Backtest_EU"].iloc[-1]
+
     with col1:
         st.subheader("Poche États-Unis")
-        st.markdown(f"**Régime Actuel :** :{DOT_COLORS.get(cur_us)}[{cur_us}]")
+        if cur_us == "CIRCUIT_BREAKER":
+            st.error("⚠️ CIRCUIT BREAKER ACTIF (100% CASH)")
+        else:
+            st.markdown(f"**Régime Actuel :** :{DOT_COLORS.get(cur_us)}[{cur_us}]")
     with col2:
         st.subheader("Poche Europe")
-        st.markdown(f"**Régime Actuel :** :{DOT_COLORS.get(cur_eu)}[{cur_eu}]")
+        if cur_eu == "CIRCUIT_BREAKER":
+            st.error("⚠️ CIRCUIT BREAKER ACTIF (100% CASH)")
+        else:
+            st.markdown(f"**Régime Actuel :** :{DOT_COLORS.get(cur_eu)}[{cur_eu}]")
     st.markdown("---")
 
     col1, col2 = st.columns(2)
     def get_pie(regime, zone):
+        if regime == "CIRCUIT_BREAKER":
+            return px.pie(pd.DataFrame([["CASH", 100.0]], columns=["Asset", "Weight"]), values="Weight", names="Asset", title=f"Allocation Cible {zone} (SAFE MODE)")
+
         base = {"Or (GLD)": 10.0}
         macro_map = {
             "US": {
@@ -62,12 +75,12 @@ with tab1:
 
     def plot_price_with_bg(zone):
         p = sig[f"Price_{zone}"]
-        reg = sig[f"Regime_{zone}"]
+        # Use regime from backtest for background coloring to include Circuit Breaker
+        reg = bt[f"Regime_Backtest_{zone}"]
         fig = go.Figure()
         fig.add_trace(go.Scatter(x=p.index, y=p, name="Prix", line=dict(color='black', width=1.5)))
 
         # Add background coloring (Original Architecture Style)
-        # Find continuous regime periods for add_vrect
         change = (reg != reg.shift(1))
         starts = reg.index[change]
         for i in range(len(starts)):
@@ -138,7 +151,12 @@ with tab4:
     ### 3. Allocation Optimisée
     Poids issus du scan large univers et validés par audit statistique.
 
-    ### 4. Paramètres
+    ### 4. Circuit Breaker (Nouveau)
+    - **Trigger** : Si l'indice (S&P 500 ou Stoxx 50) perd **7% en 5 jours**.
+    - **Action** : Passage immédiat à **100% CASH**.
+    - **Reset** : Ré-initialisation uniquement lors du prochain changement de régime.
+
+    ### 5. Paramètres
     - Frais : 0,10 % par transaction.
     - Cap : 33,3 % max par secteur (dans les 90 %).
     """)
