@@ -4,30 +4,38 @@ import numpy as np
 import os
 
 # --- 1. PARAMETERS & CONFIGURATION (Optimized Weights) ---
+def load_optimized_weights():
+    df = pd.read_csv("all_weather_robustness_matrix.csv")
+    weights = {"US": {"Regimes": {}}, "EU": {"Regimes": {}}}
+    for _, row in df.iterrows():
+        z, r = row["Zone"], row["Regime"]
+        w_dict = {}
+        for i in range(1, 4):
+            s, w = row[f"S{i}"], row[f"W{i}"]
+            if s != "CASH" and w > 0:
+                # IMPORTANT: robustness_audit.py scaled weights by 0.9.
+                # We need the relative weight WITHIN the 90% pocket.
+                # Relative weight = weight / 0.9
+                w_dict[s] = w / 0.9
+        weights[z]["Regimes"][r] = w_dict
+    return weights
+
+OPTIMIZED_WEIGHTS = load_optimized_weights()
+
 TICKERS = {
     "US": {
         "Index": "^GSPC",
         "Gold": "GLD",
         "Beta_Pos": {"XLE": 0.35, "XLF": 0.25, "XLB": 0.20, "DBC": 0.20},
         "Beta_Neg": {"XLK": 0.40, "XLY": 0.30, "XLU": 0.15, "XLRE": 0.15},
-        "Regimes": {
-            "GOLDILOCKS": {"XLK": 0.333, "XLY": 0.333, "XLV": 0.333, "CASH": 0.001},
-            "REFLATION": {"XLE": 0.333, "DBC": 0.333, "XLU": 0.333, "CASH": 0.001},
-            "STAGFLATION": {"XLU": 0.333, "DBC": 0.333, "XLV": 0.333, "CASH": 0.001},
-            "DEFLATION": {"XLK": 0.333, "XLY": 0.333, "XLU": 0.333, "CASH": 0.001}
-        }
+        "Regimes": OPTIMIZED_WEIGHTS["US"]["Regimes"]
     },
     "EU": {
         "Index": "^STOXX50E",
         "Gold": "GLD",
         "Beta_Pos": {"EXV5.DE": 0.35, "EXV1.DE": 0.25, "EXV6.DE": 0.20, "SXRS.DE": 0.20},
         "Beta_Neg": {"EXV3.DE": 0.40, "EXV8.DE": 0.30, "EXV9.DE": 0.15, "EXI5.DE": 0.15},
-        "Regimes": {
-            "GOLDILOCKS": {"EXV3.DE": 0.333, "EXV8.DE": 0.333, "EXV7.DE": 0.333, "CASH": 0.001},
-            "REFLATION": {"EXV1.DE": 0.333, "EXV6.DE": 0.333, "EXW1.DE": 0.333, "CASH": 0.001},
-            "STAGFLATION": {"EXV6.DE": 0.333, "EXV7.DE": 0.333, "EXV9.DE": 0.333, "CASH": 0.001},
-            "DEFLATION": {"EXW1.DE": 0.333, "EXV3.DE": 0.333, "EXV7.DE": 0.333, "CASH": 0.001}
-        }
+        "Regimes": OPTIMIZED_WEIGHTS["EU"]["Regimes"]
     }
 }
 
@@ -47,7 +55,7 @@ def download_data():
     all_data = {}
     for t in ALL_TICKERS:
         try:
-            d = yf.download(t, start="2019-01-01")
+            d = yf.download(t, start="2005-01-01")
             if not d.empty:
                 if isinstance(d.columns, pd.MultiIndex):
                     if 'Close' in d.columns.get_level_values(0): all_data[t] = d['Close'][t]

@@ -12,10 +12,11 @@ def load_data():
     sig = pd.read_csv("signals_analysis.csv", index_col="Date", parse_dates=True)
     perf = pd.read_csv("sector_performance.csv")
     stats = pd.read_csv("strategy_stats.csv")
-    return bt, sig, perf, stats
+    matrix = pd.read_csv("all_weather_robustness_matrix.csv")
+    return bt, sig, perf, stats, matrix
 
 try:
-    bt, sig, perf, stats = load_data()
+    bt, sig, perf, stats, matrix = load_data()
 except Exception as e:
     st.error(f"Error loading CSV files: {e}. Run the engine first.")
     st.stop()
@@ -51,24 +52,22 @@ with tab1:
         if regime == "CIRCUIT_BREAKER":
             return px.pie(pd.DataFrame([["CASH", 100.0]], columns=["Asset", "Weight"]), values="Weight", names="Asset", title=f"Allocation Cible {zone} (SAFE MODE)")
 
-        base = {"Or (GLD)": 10.0}
-        macro_map = {
-            "US": {
-                "GOLDILOCKS": {"XLK (Tech)": 30.0, "XLY (Conso)": 30.0, "XLV (Health)": 30.0},
-                "REFLATION": {"XLE (Eng)": 30.0, "DBC (Comm)": 30.0, "XLU (Util)": 30.0},
-                "STAGFLATION": {"XLU (Util)": 30.0, "DBC (Comm)": 30.0, "XLV (Health)": 30.0},
-                "DEFLATION": {"XLK (Tech)": 30.0, "XLY (Conso)": 30.0, "XLU (Util)": 30.0}
-            },
-            "EU": {
-                "GOLDILOCKS": {"EXV3 (Tech)": 30.0, "EXV8 (Conso)": 30.0, "EXV7 (Telco)": 30.0},
-                "REFLATION": {"EXV1 (Banks)": 30.0, "EXV6 (Res)": 30.0, "EXW1 (Ins)": 30.0},
-                "STAGFLATION": {"EXV6 (Res)": 30.0, "EXV7 (Telco)": 30.0, "EXV9 (Util)": 30.0},
-                "DEFLATION": {"EXW1 (Ins)": 30.0, "EXV3 (Tech)": 30.0, "EXV7 (Telco)": 30.0}
-            }
-        }
-        alloc = macro_map[zone].get(regime, {"CASH": 90.0})
-        base.update(alloc)
-        return px.pie(pd.DataFrame(list(base.items()), columns=["Asset", "Weight"]), values="Weight", names="Asset", title=f"Allocation Cible {zone} ({regime})")
+        # Load from matrix
+        m_row = matrix[(matrix["Zone"] == zone) & (matrix["Regime"] == regime)]
+        if m_row.empty:
+            return px.pie(pd.DataFrame([["CASH", 100.0]], columns=["Asset", "Weight"]), values="Weight", names="Asset", title=f"Allocation Cible {zone} (UNKNOWN)")
+
+        alloc = {"Or (GLD)": 10.0}
+        for i in range(1, 4):
+            s, w = m_row.iloc[0][f"S{i}"], m_row.iloc[0][f"W{i}"]
+            if s != "CASH" and w > 0:
+                alloc[s] = w * 100 # In percentage
+
+        tw = sum(alloc.values())
+        if tw < 100:
+            alloc["CASH"] = 100 - tw
+
+        return px.pie(pd.DataFrame(list(alloc.items()), columns=["Asset", "Weight"]), values="Weight", names="Asset", title=f"Allocation Cible {zone} ({regime})")
 
     with col1: st.plotly_chart(get_pie(cur_us, "US"))
     with col2: st.plotly_chart(get_pie(cur_eu, "EU"))
