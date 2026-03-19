@@ -13,15 +13,16 @@ def load_data():
     perf = pd.read_csv("sector_performance.csv")
     stats = pd.read_csv("strategy_stats.csv")
     matrix = pd.read_csv("all_weather_robustness_matrix.csv")
-    return bt, sig, perf, stats, matrix
+    audit = pd.read_csv("all_weather_audit_results.csv")
+    return bt, sig, perf, stats, matrix, audit
 
 try:
-    bt, sig, perf, stats, matrix = load_data()
+    bt, sig, perf, stats, matrix, audit = load_data()
 except Exception as e:
     st.error(f"Error loading CSV files: {e}. Run the engine first.")
     st.stop()
 
-tab1, tab2, tab3, tab4 = st.tabs(["🚀 Cockpit", "📊 Signaux", "📈 Performance", "📜 Méthodologie"])
+tab1, tab2, tab3, tab4, tab5 = st.tabs(["🚀 Cockpit", "📊 Signaux", "📈 Performance", "🔍 Audit Granulaire", "📜 Méthodologie"])
 COLORS = {"GOLDILOCKS": "rgba(0, 255, 0, 0.2)", "REFLATION": "rgba(0, 0, 255, 0.2)", "STAGFLATION": "rgba(255, 165, 0, 0.2)", "DEFLATION": "rgba(128, 128, 128, 0.2)", "UNKNOWN": "rgba(255, 255, 255, 0)", "CIRCUIT_BREAKER": "rgba(255, 0, 0, 0.3)"}
 DOT_COLORS = {"GOLDILOCKS": "green", "REFLATION": "blue", "STAGFLATION": "orange", "DEFLATION": "gray", "UNKNOWN": "white", "CIRCUIT_BREAKER": "red"}
 
@@ -138,6 +139,34 @@ with tab3:
     st.plotly_chart(px.imshow(p_f, text_auto=".2f", color_continuous_scale="RdYlGn"), use_container_width=True)
 
 with tab4:
+    st.header("🔍 Audit Granulaire des Secteurs (2005-2026)")
+    st.markdown("Cette table détaille l'Alpha et le Drawdown par secteur, période et régime. C'est l'analyse qui a servi à identifier les 'Piliers' de l'allocation All-Weather.")
+
+    col_f1, col_f2, col_f3 = st.columns(3)
+    with col_f1: z_filter = st.selectbox("Zone", ["All"] + list(audit["Zone"].unique()))
+    with col_f2: p_filter = st.selectbox("Période", ["All"] + list(audit["Period"].unique()))
+    with col_f3: r_filter = st.selectbox("Régime", ["All"] + list(audit["Regime"].unique()))
+
+    df_audit = audit.copy()
+    if z_filter != "All": df_audit = df_audit[df_audit["Zone"] == z_filter]
+    if p_filter != "All": df_audit = df_audit[df_audit["Period"] == p_filter]
+    if r_filter != "All": df_audit = df_audit[df_audit["Regime"] == r_filter]
+
+    # Formatting
+    df_display = df_audit.copy()
+    for col in ["Ann_Return", "Index_Return", "Alpha", "Max_Drawdown"]:
+        df_display[col] = df_display[col].apply(lambda x: f"{x*100:.2f}%")
+
+    st.dataframe(df_display, use_container_width=True, height=600)
+
+    st.download_button(
+        label="📥 Télécharger l'Audit Complet (CSV)",
+        data=audit.to_csv(index=False),
+        file_name="all_weather_audit_granular.csv",
+        mime="text/csv",
+    )
+
+with tab5:
     st.header("Méthodologie")
     st.markdown("""
     ### 1. Architecture Miroir
