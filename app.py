@@ -54,16 +54,16 @@ with tab1:
         base = {"Or (GLD)": 10.0}
         macro_map = {
             "US": {
-                "GOLDILOCKS": {"XLK (Tech)": 30.0, "XLY (Conso)": 30.0, "XLF (Fin)": 2.25, "CASH": 27.75},
-                "REFLATION": {"XLE (Eng)": 30.0, "DBC (Comm)": 30.0, "XLU (Util)": 29.5, "CASH": 0.5},
-                "STAGFLATION": {"XLY (Conso)": 30.0, "XLRE (Immo)": 30.0, "XLF (Fin)": 28.3, "CASH": 1.7},
-                "DEFLATION": {"XLK (Tech)": 30.0, "XLC (Comm)": 30.0, "XLU (Util)": 18.4, "CASH": 11.6}
+                "GOLDILOCKS": {"XLK (Tech)": 30.0, "XLY (Conso)": 30.0, "XLV (Health)": 30.0},
+                "REFLATION": {"XLE (Eng)": 30.0, "DBC (Comm)": 30.0, "XLU (Util)": 30.0},
+                "STAGFLATION": {"XLU (Util)": 30.0, "DBC (Comm)": 30.0, "XLV (Health)": 30.0},
+                "DEFLATION": {"XLK (Tech)": 30.0, "XLY (Conso)": 30.0, "XLU (Util)": 30.0}
             },
             "EU": {
-                "GOLDILOCKS": {"EXV1 (Banks)": 30.0, "EXV9 (Util)": 30.0, "EXV8 (Conso)": 25.7, "CASH": 4.3},
-                "REFLATION": {"EXV1 (Banks)": 30.0, "EXV6 (Res)": 30.0, "EXW1 (Ins)": 5.0, "CASH": 25.0},
-                "STAGFLATION": {"EXI5 (Immo)": 30.0, "EXV8 (Conso)": 30.0, "EXV3 (Tech)": 28.6, "CASH": 1.4},
-                "DEFLATION": {"EXV9 (Util)": 30.0, "EXV3 (Tech)": 30.0, "EXV1 (Banks)": 29.2, "CASH": 0.8}
+                "GOLDILOCKS": {"EXV3 (Tech)": 30.0, "EXV8 (Conso)": 30.0, "EXV7 (Telco)": 30.0},
+                "REFLATION": {"EXV1 (Banks)": 30.0, "EXV6 (Res)": 30.0, "EXW1 (Ins)": 30.0},
+                "STAGFLATION": {"EXV6 (Res)": 30.0, "EXV7 (Telco)": 30.0, "EXV9 (Util)": 30.0},
+                "DEFLATION": {"EXW1 (Ins)": 30.0, "EXV3 (Tech)": 30.0, "EXV7 (Telco)": 30.0}
             }
         }
         alloc = macro_map[zone].get(regime, {"CASH": 90.0})

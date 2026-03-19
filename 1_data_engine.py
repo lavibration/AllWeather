@@ -11,10 +11,10 @@ TICKERS = {
         "Beta_Pos": {"XLE": 0.35, "XLF": 0.25, "XLB": 0.20, "DBC": 0.20},
         "Beta_Neg": {"XLK": 0.40, "XLY": 0.30, "XLU": 0.15, "XLRE": 0.15},
         "Regimes": {
-            "GOLDILOCKS": {"XLK": 0.333, "XLY": 0.333, "XLF": 0.025, "CASH": 0.309},
-            "REFLATION": {"XLE": 0.333, "DBC": 0.333, "XLU": 0.328, "CASH": 0.006},
-            "STAGFLATION": {"XLY": 0.333, "XLRE": 0.333, "XLF": 0.314, "CASH": 0.019},
-            "DEFLATION": {"XLK": 0.333, "XLC": 0.333, "XLU": 0.204, "CASH": 0.129}
+            "GOLDILOCKS": {"XLK": 0.333, "XLY": 0.333, "XLV": 0.333, "CASH": 0.001},
+            "REFLATION": {"XLE": 0.333, "DBC": 0.333, "XLU": 0.333, "CASH": 0.001},
+            "STAGFLATION": {"XLU": 0.333, "DBC": 0.333, "XLV": 0.333, "CASH": 0.001},
+            "DEFLATION": {"XLK": 0.333, "XLY": 0.333, "XLU": 0.333, "CASH": 0.001}
         }
     },
     "EU": {
@@ -23,10 +23,10 @@ TICKERS = {
         "Beta_Pos": {"EXV5.DE": 0.35, "EXV1.DE": 0.25, "EXV6.DE": 0.20, "SXRS.DE": 0.20},
         "Beta_Neg": {"EXV3.DE": 0.40, "EXV8.DE": 0.30, "EXV9.DE": 0.15, "EXI5.DE": 0.15},
         "Regimes": {
-            "GOLDILOCKS": {"EXV1.DE": 0.333, "EXV9.DE": 0.333, "EXV8.DE": 0.286, "CASH": 0.048},
-            "REFLATION": {"EXV1.DE": 0.333, "EXV6.DE": 0.333, "EXW1.DE": 0.056, "CASH": 0.277},
-            "STAGFLATION": {"EXI5.DE": 0.333, "EXV8.DE": 0.333, "EXV3.DE": 0.318, "CASH": 0.015},
-            "DEFLATION": {"EXV9.DE": 0.333, "EXV3.DE": 0.333, "EXV1.DE": 0.324, "CASH": 0.010}
+            "GOLDILOCKS": {"EXV3.DE": 0.333, "EXV8.DE": 0.333, "EXV7.DE": 0.333, "CASH": 0.001},
+            "REFLATION": {"EXV1.DE": 0.333, "EXV6.DE": 0.333, "EXW1.DE": 0.333, "CASH": 0.001},
+            "STAGFLATION": {"EXV6.DE": 0.333, "EXV7.DE": 0.333, "EXV9.DE": 0.333, "CASH": 0.001},
+            "DEFLATION": {"EXW1.DE": 0.333, "EXV3.DE": 0.333, "EXV7.DE": 0.333, "CASH": 0.001}
         }
     }
 }
