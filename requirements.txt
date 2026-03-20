@@ -1,6 +1,6 @@
 yfinance
 pandas
 numpy
-streamlit
-plotly
-openpyxl
+scipy
+matplotlib
+seaborn
