@@ -130,22 +130,45 @@ with tab3:
     st.table(formatted_stats)
 
     st.divider()
-    st.subheader("Performance des Secteurs par Régime")
+    st.subheader("Performance des Secteurs par Régime (Période Globale)")
+
+    # Load Global Sector Performance
+    global_perf = pd.read_csv("sector_perf_TOTAL.csv")
 
     col1, col2 = st.columns(2)
-    pivot_us = sector_perf[sector_perf["Zone"] == "US"].pivot(index="Sector", columns="Regime", values="Ann_Return")
-    fig_h_us = px.imshow(pivot_us, text_auto=".1%", title="Heatmap Secteurs US", color_continuous_scale="RdYlGn")
-    col1.plotly_chart(fig_h_us, use_container_width=True)
 
-    pivot_eu = sector_perf[sector_perf["Zone"] == "EU"].pivot(index="Sector", columns="Regime", values="Ann_Return")
-    fig_h_eu = px.imshow(pivot_eu, text_auto=".1%", title="Heatmap Secteurs EU", color_continuous_scale="RdYlGn")
-    col2.plotly_chart(fig_h_eu, use_container_width=True)
+    with col1:
+        st.write("**Zone US (Total)**")
+        pivot_us = global_perf[global_perf["Zone"] == "US"].pivot(index="Sector", columns="Regime", values="Ann_Return")
+        st.dataframe(pivot_us.style.format("{:.2%}") if not pivot_us.empty else pivot_us)
+        fig_h_us = px.imshow(pivot_us, text_auto=".1%", title="Heatmap Secteurs US", color_continuous_scale="RdYlGn")
+        st.plotly_chart(fig_h_us, use_container_width=True)
+
+    with col2:
+        st.write("**Zone EU (Total)**")
+        pivot_eu = global_perf[global_perf["Zone"] == "EU"].pivot(index="Sector", columns="Regime", values="Ann_Return")
+        st.dataframe(pivot_eu.style.format("{:.2%}") if not pivot_eu.empty else pivot_eu)
+        fig_h_eu = px.imshow(pivot_eu, text_auto=".1%", title="Heatmap Secteurs EU", color_continuous_scale="RdYlGn")
+        st.plotly_chart(fig_h_eu, use_container_width=True)
+
+    st.divider()
+    st.subheader("Signaux & Graphique de Stratégie")
+    st.image("strategy_vs_benchmark.png", caption="Comparaison des deux stratégies vs leurs benchmarks respectifs (Log scale)")
 
     st.divider()
     st.subheader("Analyse Historique par Périodes")
-    col1, col2 = st.columns(2)
-    col1.image("sector_performance_US.png", caption="Heatmap US (Périodes vs Régimes)")
-    col2.image("sector_performance_EU.png", caption="Heatmap EU (Périodes vs Régimes)")
+    p_select = st.selectbox("Choisir une période d'analyse", ["P1", "P2", "P3", "P4"])
+    p_df = pd.read_csv(f"sector_perf_{p_select}.csv")
+
+    col_a, col_b = st.columns(2)
+    with col_a:
+        st.write(f"**Zone US ({p_select})**")
+        p_pivot_us = p_df[p_df["Zone"] == "US"].pivot(index="Sector", columns="Regime", values="Ann_Return")
+        st.dataframe(p_pivot_us.style.format("{:.2%}") if not p_pivot_us.empty else p_pivot_us)
+    with col_b:
+        st.write(f"**Zone EU ({p_select})**")
+        p_pivot_eu = p_df[p_df["Zone"] == "EU"].pivot(index="Sector", columns="Regime", values="Ann_Return")
+        st.dataframe(p_pivot_eu.style.format("{:.2%}") if not p_pivot_eu.empty else p_pivot_eu)
 
 # --- TAB 4: METHODOLOGY ---
 with tab4:

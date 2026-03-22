@@ -190,31 +190,38 @@ if __name__ == "__main__":
         {"Zone": "EU", **stats_eu}
     ]).to_csv("strategy_stats.csv", index=False)
 
-    # 5. PNG Heatmaps (Period analysis)
+    # 5. Sector Performance CSVs (Total + 4 Periods)
     import matplotlib.pyplot as plt
     import seaborn as sns
-    period_perf = []
-    for p_name, (start, end) in PERIODS.items():
-        mask_p = (data.index >= start) & (data.index <= end)
-        if not mask_p.any(): continue
+
+    all_periods = {"TOTAL": (data.index[0], data.index[-1])}
+    for k, v in PERIODS.items():
+        all_periods[k.split(" ")[0]] = v # Extract P1, P2, etc.
+
+    for p_key, (start, end) in all_periods.items():
+        p_mask = (data.index >= start) & (data.index <= end)
+        if not p_mask.any(): continue
+        p_perf = []
         for zone, reg_series, tickers in [("US", res_us["regime"], TICKERS_US.values()), ("EU", res_eu["regime"], TICKERS_EU.values())]:
             for reg in ["GOLDILOCKS", "REFLATION", "STAGFLATION", "DEFLATION"]:
-                mask = mask_p & (reg_series == reg)
+                mask = p_mask & (reg_series == reg)
                 if mask.any():
                     for t in set(tickers):
                         if t in all_rets.columns:
                             ann_ret = all_rets.loc[mask, t].mean() * 252
-                            period_perf.append({"Period": p_name, "Zone": zone, "Regime": reg, "Sector": t, "Ann_Return": ann_ret})
+                            p_perf.append({"Zone": zone, "Regime": reg, "Sector": t, "Ann_Return": ann_ret})
+        pd.DataFrame(p_perf).to_csv(f"sector_perf_{p_key}.csv", index=False)
 
-    df_period = pd.DataFrame(period_perf)
-    for zone in ["US", "EU"]:
-        z_df = df_period[df_period["Zone"] == zone]
-        if z_df.empty: continue
-        pivot = z_df.pivot_table(index="Sector", columns=["Period", "Regime"], values="Ann_Return")
-        plt.figure(figsize=(16, 8))
-        sns.heatmap(pivot, annot=True, fmt=".1%", cmap="RdYlGn", center=0)
-        plt.title(f"Performance Sectorielle par Régime et Période - {zone}")
-        plt.tight_layout()
-        plt.savefig(f"sector_performance_{zone}.png")
+    # 6. Global Strategy vs Benchmark Plot
+    plt.figure(figsize=(12, 6))
+    plt.plot(v_us, label="Stratégie US", color="blue")
+    plt.plot(bench_us, label="Benchmark US (S&P500)", color="lightblue", linestyle="--")
+    plt.plot(v_eu, label="Stratégie EU", color="green")
+    plt.plot(bench_eu, label="Benchmark EU (STX50)", color="lightgreen", linestyle="--")
+    plt.yscale('log')
+    plt.title("Comparaison Stratégies vs Benchmarks (Échelle Log)")
+    plt.legend()
+    plt.grid(True, alpha=0.3)
+    plt.savefig("strategy_vs_benchmark.png")
 
     print("Data Engine Execution Successful.")
