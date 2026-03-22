@@ -1,4 +1,4 @@
-name: Daily Risk Analysis
+name: Daily Backtest Audit
 
 on:
   schedule:
@@ -19,14 +19,14 @@ jobs:
 
       - name: Install dependencies
         run: |
-          pip install pandas numpy yfinance scipy matplotlib seaborn
+          pip install pandas numpy yfinance matplotlib seaborn
 
-      - name: Run Risk Analysis
-        run: python portfolio_risk_design.py
+      - name: Run Unified Backtest Audit
+        run: python unified_backtest_audit.py
 
       - name: Commit and push changes
         run: |
           git config --global user.name "GitHub Action"
           git config --global user.email "action@github.com"
           git add *.csv *.png
-          git commit -m "Auto-update risk analysis results" || echo "No changes to commit"
+          git commit -m "Auto-update backtest and audit results" || echo "No changes to commit"
