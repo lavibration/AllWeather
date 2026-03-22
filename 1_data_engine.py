@@ -8,7 +8,7 @@ GLD_TICKER = "GLD"
 US_INDEX = "^GSPC"
 EU_INDEX = "^STOXX50E"
 
-# Beta Portfolios Components & Weights
+# Beta Portfolios Components & Weights (STRICT)
 BETA_POS_WEIGHTS = {"Energy": 0.35, "Financials": 0.25, "Materials": 0.20, "Commodities": 0.20}
 BETA_NEG_WEIGHTS = {"GrowthTech": 0.40, "ConsDisc": 0.30, "Utilities": 0.15, "GrowthRE": 0.15}
 
@@ -16,217 +16,205 @@ BETA_NEG_WEIGHTS = {"GrowthTech": 0.40, "ConsDisc": 0.30, "Utilities": 0.15, "Gr
 TICKERS_US = {
     "Energy": "XLE", "Financials": "XLF", "Materials": "XLB", "Commodities": "DBC",
     "GrowthTech": "XLK", "ConsDisc": "XLY", "Utilities": "XLU", "GrowthRE": "XLRE",
-    "CommServices": "XLC"
+    "Comm": "XLC"
 }
 
 TICKERS_EU = {
     "Energy": "EXV5.DE", "Financials": "EXV1.DE", "Materials": "EXV6.DE", "Commodities": "DBC",
     "GrowthTech": "EXV3.DE", "ConsDisc": "EXV8.DE", "Utilities": "EXV9.DE", "GrowthRE": "EXI5.DE",
-    "HealthCare": "EXV4.DE", "Automobile": "EXV2.DE", "Telecoms": "EXV7.DE"
+    "Health": "EXV4.DE", "Auto": "EXV2.DE", "Telecoms": "EXV7.DE"
 }
 
-# Allocation Matrix (Macro Pocket: 90%)
-# Max 33.3% per sector in the 90% pocket means 0.333 * 0.9 = 29.97% of total portfolio.
-# But the requirement says "Max 33.3% par secteur dans la poche de 90%", so 1/3 of the 90%.
+# ALLOCATION MATRIX (Macro Pocket: 90%) - STRICT 33.3% RULE
 ALLOC_US = {
-    "GOLDILOCKS": {"XLK": 0.333, "XLY": 0.333, "XLF": 0.333},
-    "REFLATION": {"XLE": 0.333, "XLB": 0.333, "XLF": 0.333},
+    "GOLDILOCKS": {"XLK": 0.333, "XLY": 0.333, "XLF": 0.334},
+    "REFLATION": {"XLE": 0.333, "XLB": 0.333, "XLF": 0.334},
     "STAGFLATION": {"DBC": 0.333, "CASH": 0.667},
-    "DEFLATION": {"XLY": 0.333, "XLRE": 0.333, "XLC": 0.333}
+    "DEFLATION": {"XLY": 0.333, "XLRE": 0.333, "XLC": 0.334}
 }
 
 ALLOC_EU = {
-    "GOLDILOCKS": {"EXV4.DE": 0.333, "EXV3.DE": 0.333, "EXI5.DE": 0.333},
-    "REFLATION": {"EXV1.DE": 0.333, "EXV6.DE": 0.333, "DBC": 0.333},
+    "GOLDILOCKS": {"EXV4.DE": 0.333, "EXV3.DE": 0.333, "EXI5.DE": 0.334},
+    "REFLATION": {"EXV1.DE": 0.333, "EXV6.DE": 0.333, "DBC": 0.334},
     "STAGFLATION": {"DBC": 0.333, "CASH": 0.667},
-    "DEFLATION": {"EXV4.DE": 0.333, "EXV2.DE": 0.333, "EXV7.DE": 0.333}
+    "DEFLATION": {"EXV4.DE": 0.333, "EXV2.DE": 0.333, "EXV7.DE": 0.334}
 }
 
-def get_all_tickers():
-    t = {GLD_TICKER, US_INDEX, EU_INDEX}
-    t.update(TICKERS_US.values())
-    t.update(TICKERS_EU.values())
-    return sorted(list(t))
+PERIODS = {
+    "P1 (2005-2012)": ("2005-01-01", "2012-12-31"),
+    "P2 (2013-2019)": ("2013-01-01", "2019-12-31"),
+    "P3 (2020-2022)": ("2020-01-01", "2022-12-31"),
+    "P4 (2023-Present)": ("2023-01-01", "2026-12-31")
+}
 
 def download_data():
-    tickers = get_all_tickers()
-    data = yf.download(tickers, start="2000-01-01")['Close']
-    # Fill missing values: ffill then bfill for start of history
+    tickers = {GLD_TICKER, US_INDEX, EU_INDEX, "DBC"}
+    tickers.update(TICKERS_US.values())
+    tickers.update(TICKERS_EU.values())
+    data = yf.download(list(tickers), start="2004-01-01")['Close']
     data = data.ffill().bfill()
     return data
 
-def calculate_signals(data, index_ticker, beta_pos_map, beta_neg_map):
+def calculate_signals(data, index_ticker, zone):
     # Growth Signal
     price = data[index_ticker]
     ma200 = price.rolling(200).mean()
-
-    growth_signal = pd.Series(index=data.index, dtype='string')
-    current_growth = "UNKNOWN"
+    growth_signal = pd.Series("UNKNOWN", index=data.index, dtype='string')
+    curr = "UNKNOWN"
     for i in range(len(data)):
-        p = price.iloc[i]
-        m = ma200.iloc[i]
-        if pd.isna(m):
-            growth_signal.iloc[i] = "UNKNOWN"
-            continue
-        if p > 1.01 * m:
-            current_growth = "UP"
-        elif p < 0.99 * m:
-            current_growth = "DOWN"
-        growth_signal.iloc[i] = current_growth
+        p, m = price.iloc[i], ma200.iloc[i]
+        if not pd.isna(m):
+            if p > 1.01 * m: curr = "UP"
+            elif p < 0.99 * m: curr = "DOWN"
+        growth_signal.iloc[i] = curr
 
     # Inflation Signal
     rets = data.pct_change().fillna(0)
-
-    # Synthetic Beta Portfolios
-    pos_ret = sum(rets[beta_pos_map[k]] * BETA_POS_WEIGHTS[k] for k in BETA_POS_WEIGHTS)
-    neg_ret = sum(rets[beta_neg_map[k]] * BETA_NEG_WEIGHTS[k] for k in BETA_NEG_WEIGHTS)
-
+    t_map = TICKERS_US if zone == "US" else TICKERS_EU
+    pos_ret = sum(rets[t_map[k]] * BETA_POS_WEIGHTS[k] for k in BETA_POS_WEIGHTS if t_map[k] in rets.columns)
+    neg_ret = sum(rets[t_map[k]] * BETA_NEG_WEIGHTS[k] for k in BETA_NEG_WEIGHTS if t_map[k] in rets.columns)
     ratio = (1 + pos_ret).cumprod() / (1 + neg_ret).cumprod()
     median200 = ratio.rolling(200).median()
-
-    inflation_signal = pd.Series(index=data.index, dtype='string')
-    current_inflation = "UNKNOWN"
+    inflation_signal = pd.Series("UNKNOWN", index=data.index, dtype='string')
+    curr = "UNKNOWN"
     for i in range(len(data)):
-        r = ratio.iloc[i]
-        m = median200.iloc[i]
-        if pd.isna(m):
-            inflation_signal.iloc[i] = "UNKNOWN"
-            continue
-        if r > 1.01 * m:
-            current_inflation = "UP"
-        elif r < 0.99 * m:
-            current_inflation = "DOWN"
-        inflation_signal.iloc[i] = current_inflation
+        r, m = ratio.iloc[i], median200.iloc[i]
+        if not pd.isna(m):
+            if r > 1.01 * m: curr = "UP"
+            elif r < 0.99 * m: curr = "DOWN"
+        inflation_signal.iloc[i] = curr
 
-    regime = pd.Series(index=data.index, dtype='string')
+    regime = pd.Series("UNKNOWN", index=data.index, dtype='string')
     regime[(growth_signal == "UP") & (inflation_signal == "DOWN")] = "GOLDILOCKS"
     regime[(growth_signal == "UP") & (inflation_signal == "UP")] = "REFLATION"
     regime[(growth_signal == "DOWN") & (inflation_signal == "UP")] = "STAGFLATION"
     regime[(growth_signal == "DOWN") & (inflation_signal == "DOWN")] = "DEFLATION"
-    regime = regime.fillna("UNKNOWN")
 
-    return regime, growth_signal, inflation_signal, ma200, ratio, median200
+    return {
+        "regime": regime,
+        "growth": growth_signal,
+        "inflation": inflation_signal,
+        "ma200": ma200,
+        "ratio": ratio,
+        "median200": median200,
+        "price": price
+    }
 
 def run_backtest(data, zone_name, alloc_matrix, regime_series):
-    # 10% GOLD, 90% MACRO
     rets = data.pct_change().fillna(0)
     rets['CASH'] = 0.0
-
-    # Shift regime by 1 day to avoid look-ahead bias
+    # Apply 1-day lag to signal to avoid look-ahead bias
     regime_delayed = regime_series.shift(1).fillna("UNKNOWN")
-
-    # Monthly Rebalancing
     reb_dates = data.resample('ME').last().index
-
-    portfolio_value = 100.0
-    current_weights = {} # Ticker -> weight
+    val, current_w = 100.0, {}
     history = []
 
     for date in data.index:
-        # Update portfolio value with daily returns
-        if current_weights:
-            day_return = sum(current_weights.get(t, 0) * rets.loc[date, t] for t in current_weights)
-            portfolio_value *= (1 + day_return)
+        if current_w:
+            day_ret = sum(current_w.get(t, 0) * rets.loc[date, t] for t in current_w if t in rets.columns or t == 'CASH')
+            val *= (1 + day_ret)
 
-        # Rebalance
         if date in reb_dates:
             reg = regime_delayed.loc[date]
-            target_weights = {GLD_TICKER: 0.10}
-
-            if reg != "UNKNOWN":
-                macro_alloc = alloc_matrix[reg]
-                for ticker, weight in macro_alloc.items():
-                    target_weights[ticker] = target_weights.get(ticker, 0) + weight * 0.90
+            target_w = {GLD_TICKER: 0.10}
+            if reg in alloc_matrix:
+                for t, w in alloc_matrix[reg].items():
+                    target_w[t] = target_w.get(t, 0) + w * 0.90
             else:
-                target_weights['CASH'] = target_weights.get('CASH', 0) + 0.90
+                target_w['CASH'] = target_w.get('CASH', 0) + 0.90
 
-            # Transaction fees: 0.10% on turnover
-            all_tickers = set(current_weights.keys()) | set(target_weights.keys())
-            turnover = sum(abs(target_weights.get(t, 0) - current_weights.get(t, 0)) for t in all_tickers)
-            portfolio_value *= (1 - turnover * 0.0010)
+            # Transaction Fees: 0.10% on turnover (value of modified lines)
+            turnover = sum(abs(target_w.get(t, 0) - current_w.get(t, 0)) for t in set(target_w) | set(current_w))
+            val *= (1 - turnover * 0.0010)
+            current_w = target_w.copy()
 
-            current_weights = target_weights.copy()
-
-        history.append(portfolio_value)
-
+        history.append(val)
     return pd.Series(history, index=data.index)
 
-def calculate_stats(val_series, bench_series):
-    rets = val_series.pct_change().dropna()
-    cagr = (val_series.iloc[-1] / val_series.iloc[0]) ** (252 / len(val_series)) - 1
-    vol = rets.std() * np.sqrt(252)
-    sharpe = cagr / vol if vol != 0 else 0
-    mdd = ((val_series - val_series.cummax()) / val_series.cummax()).min()
-    hit_rate = len(rets[rets > 0]) / len(rets) if len(rets) > 0 else 0
+def calculate_stats(strat_val, bench_val):
+    def get_metrics(v):
+        r = v.pct_change().dropna()
+        cagr = (v.iloc[-1]/v.iloc[0])**(252/len(v)) - 1
+        vol = r.std() * np.sqrt(252)
+        mdd = ((v - v.cummax())/v.cummax()).min()
+        sharpe = cagr/vol if vol != 0 else 0
+        hit_rate = (r > 0).mean()
+        return cagr, vol, mdd, sharpe, hit_rate
 
-    return {"CAGR": cagr, "Vol": vol, "Sharpe": sharpe, "MaxDD": mdd, "HitRate": hit_rate}
+    s_cagr, s_vol, s_mdd, s_sharpe, s_hit = get_metrics(strat_val)
+    return {
+        "CAGR": s_cagr, "Vol": s_vol, "MaxDD": s_mdd, "Sharpe": s_sharpe, "HitRate": s_hit
+    }
 
 if __name__ == "__main__":
-    print("Downloading data...")
     data = download_data()
+    res_us = calculate_signals(data, US_INDEX, "US")
+    res_eu = calculate_signals(data, EU_INDEX, "EU")
 
-    print("Calculating signals...")
-    reg_us, growth_us, infl_us, ma200_us, ratio_us, med200_us = calculate_signals(data, US_INDEX, TICKERS_US, TICKERS_US)
-    reg_eu, growth_eu, infl_eu, ma200_eu, ratio_eu, med200_eu = calculate_signals(data, EU_INDEX, TICKERS_EU, TICKERS_EU)
+    v_us = run_backtest(data, "US", ALLOC_US, res_us["regime"])
+    v_eu = run_backtest(data, "EU", ALLOC_EU, res_eu["regime"])
 
-    print("Running backtests...")
-    val_us = run_backtest(data, "US", ALLOC_US, reg_us)
-    val_eu = run_backtest(data, "EU", ALLOC_EU, reg_eu)
-
-    # Benchmarks (Base 100)
     bench_us = (1 + data[US_INDEX].pct_change().fillna(0)).cumprod() * 100
     bench_eu = (1 + data[EU_INDEX].pct_change().fillna(0)).cumprod() * 100
 
     # 1. backtest_results.csv
-    backtest_results = pd.DataFrame({
-        "Strategy_US": val_us,
-        "Benchmark_US": bench_us,
-        "Strategy_EU": val_eu,
-        "Benchmark_EU": bench_eu,
-        "Regime_US": reg_us,
-        "Regime_EU": reg_eu
-    })
-    backtest_results.to_csv("backtest_results.csv")
+    pd.DataFrame({
+        "Strategy_US": v_us, "Benchmark_US": bench_us, "Regime_US": res_us["regime"],
+        "Strategy_EU": v_eu, "Benchmark_EU": bench_eu, "Regime_EU": res_eu["regime"]
+    }).to_csv("backtest_results.csv")
 
     # 2. signals_analysis.csv
-    signals_analysis = pd.DataFrame({
-        "Price_US": data[US_INDEX],
-        "MA200_US": ma200_us,
-        "Ratio_US": ratio_us,
-        "Median200_US": med200_us,
-        "Price_EU": data[EU_INDEX],
-        "MA200_EU": ma200_eu,
-        "Ratio_EU": ratio_eu,
-        "Median200_EU": med200_eu
-    })
-    signals_analysis.to_csv("signals_analysis.csv")
+    pd.DataFrame({
+        "Price_US": res_us["price"], "MA200_US": res_us["ma200"], "Ratio_US": res_us["ratio"], "Median200_US": res_us["median200"],
+        "Price_EU": res_eu["price"], "MA200_EU": res_eu["ma200"], "Ratio_EU": res_eu["ratio"], "Median200_EU": res_eu["median200"]
+    }).to_csv("signals_analysis.csv")
 
     # 3. sector_performance.csv
-    # Matrix of performance of each sector by regime
     all_rets = data.pct_change().fillna(0)
-    sector_perf = []
-    for reg in ["GOLDILOCKS", "REFLATION", "STAGFLATION", "DEFLATION"]:
-        # US
-        mask_us = (reg_us == reg)
-        if mask_us.any():
-            for s_ticker in set(TICKERS_US.values()):
-                avg_ret = all_rets.loc[mask_us, s_ticker].mean() * 252
-                sector_perf.append({"Regime": reg, "Zone": "US", "Sector": s_ticker, "Ann_Return": avg_ret})
-        # EU
-        mask_eu = (reg_eu == reg)
-        if mask_eu.any():
-            for s_ticker in set(TICKERS_EU.values()):
-                avg_ret = all_rets.loc[mask_eu, s_ticker].mean() * 252
-                sector_perf.append({"Regime": reg, "Zone": "EU", "Sector": s_ticker, "Ann_Return": avg_ret})
-    pd.DataFrame(sector_perf).to_csv("sector_performance.csv", index=False)
+    perf_records = []
+    for zone, reg_series, tickers in [("US", res_us["regime"], TICKERS_US.values()), ("EU", res_eu["regime"], TICKERS_EU.values())]:
+        for reg in ["GOLDILOCKS", "REFLATION", "STAGFLATION", "DEFLATION"]:
+            mask = (reg_series == reg)
+            if mask.any():
+                for t in set(tickers):
+                    if t in all_rets.columns:
+                        ann_ret = all_rets.loc[mask, t].mean() * 252
+                        perf_records.append({"Zone": zone, "Regime": reg, "Sector": t, "Ann_Return": ann_ret})
+    pd.DataFrame(perf_records).to_csv("sector_performance.csv", index=False)
 
     # 4. strategy_stats.csv
-    stats_us = calculate_stats(val_us, bench_us)
-    stats_eu = calculate_stats(val_eu, bench_eu)
-    strategy_stats = pd.DataFrame([
+    stats_us = calculate_stats(v_us, bench_us)
+    stats_eu = calculate_stats(v_eu, bench_eu)
+    pd.DataFrame([
         {"Zone": "US", **stats_us},
         {"Zone": "EU", **stats_eu}
-    ])
-    strategy_stats.to_csv("strategy_stats.csv", index=False)
+    ]).to_csv("strategy_stats.csv", index=False)
 
-    print("Engine completed successfully.")
+    # 5. PNG Heatmaps (Period analysis)
+    import matplotlib.pyplot as plt
+    import seaborn as sns
+    period_perf = []
+    for p_name, (start, end) in PERIODS.items():
+        mask_p = (data.index >= start) & (data.index <= end)
+        if not mask_p.any(): continue
+        for zone, reg_series, tickers in [("US", res_us["regime"], TICKERS_US.values()), ("EU", res_eu["regime"], TICKERS_EU.values())]:
+            for reg in ["GOLDILOCKS", "REFLATION", "STAGFLATION", "DEFLATION"]:
+                mask = mask_p & (reg_series == reg)
+                if mask.any():
+                    for t in set(tickers):
+                        if t in all_rets.columns:
+                            ann_ret = all_rets.loc[mask, t].mean() * 252
+                            period_perf.append({"Period": p_name, "Zone": zone, "Regime": reg, "Sector": t, "Ann_Return": ann_ret})
+
+    df_period = pd.DataFrame(period_perf)
+    for zone in ["US", "EU"]:
+        z_df = df_period[df_period["Zone"] == zone]
+        if z_df.empty: continue
+        pivot = z_df.pivot_table(index="Sector", columns=["Period", "Regime"], values="Ann_Return")
+        plt.figure(figsize=(16, 8))
+        sns.heatmap(pivot, annot=True, fmt=".1%", cmap="RdYlGn", center=0)
+        plt.title(f"Performance Sectorielle par Régime et Période - {zone}")
+        plt.tight_layout()
+        plt.savefig(f"sector_performance_{zone}.png")
+
+    print("Data Engine Execution Successful.")

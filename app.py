@@ -42,19 +42,20 @@ with tab1:
     st.subheader("Allocations Cibles (Macro Pocket 90% + Gold 10%)")
     col1, col2 = st.columns(2)
 
-    # Target Allocations based on strict rules
+    # Target Allocations: 90% Macro Pocket (33.3% per sector max) + 10% Gold
+    # Weights below are for the TOTAL portfolio (Sectors = 33.33% * 90% = 30%)
     alloc_us = {
-        "GOLDILOCKS": {"XLK": 30, "XLY": 30, "XLF": 30, "GLD": 10},
-        "REFLATION": {"XLE": 30, "XLB": 30, "XLF": 30, "GLD": 10},
-        "STAGFLATION": {"Commodities (DBC)": 30, "CASH": 60, "GLD": 10},
-        "DEFLATION": {"XLY": 30, "XLRE": 30, "XLC": 30, "GLD": 10}
+        "GOLDILOCKS": {"XLK": 30.0, "XLY": 30.0, "XLF": 30.0, "GLD": 10.0},
+        "REFLATION": {"XLE": 30.0, "XLB": 30.0, "XLF": 30.0, "GLD": 10.0},
+        "STAGFLATION": {"Commodities (DBC)": 30.0, "CASH": 60.0, "GLD": 10.0},
+        "DEFLATION": {"XLY": 30.0, "XLRE": 30.0, "XLC": 30.0, "GLD": 10.0}
     }
 
     alloc_eu = {
-        "GOLDILOCKS": {"Santé (EXV4)": 30, "Tech (EXV3)": 30, "Real Estate (EXI5)": 30, "GLD": 10},
-        "REFLATION": {"Banks (EXV1)": 30, "Resources (EXV6)": 30, "Commodities (DBC)": 30, "GLD": 10},
-        "STAGFLATION": {"Commodities (DBC)": 30, "CASH": 60, "GLD": 10},
-        "DEFLATION": {"Santé (EXV4)": 30, "Auto (EXV2)": 30, "Telecom (EXV7)": 30, "GLD": 10}
+        "GOLDILOCKS": {"Santé (EXV4)": 30.0, "Tech (EXV3)": 30.0, "Real Estate (EXI5)": 30.0, "GLD": 10.0},
+        "REFLATION": {"Banks (EXV1)": 30.0, "Resources (EXV6)": 30.0, "Commodities (DBC)": 30.0, "GLD": 10.0},
+        "STAGFLATION": {"Commodities (DBC)": 30.0, "CASH": 60.0, "GLD": 10.0},
+        "DEFLATION": {"Santé (EXV4)": 30.0, "Auto (EXV2)": 30.0, "Telecom (EXV7)": 30.0, "GLD": 10.0}
     }
 
     for zone, alloc_map, c in [("US", alloc_us, col1), ("EU", alloc_eu, col2)]:
@@ -74,7 +75,6 @@ with tab1:
         fig.add_trace(go.Scatter(x=res.index, y=res[f"Strategy_{zone}"], name=f"Stratégie {zone}", line=dict(color='black', width=2)))
         fig.add_trace(go.Scatter(x=res.index, y=res[f"Benchmark_{zone}"], name=f"Benchmark {zone}", line=dict(color='darkred', width=1, dash='dot')))
 
-        # Add background colors for regimes
         regime_series = res[f"Regime_{zone}"]
         changes = regime_series != regime_series.shift(1)
         change_indices = res.index[changes].tolist() + [res.index[-1]]
@@ -83,9 +83,10 @@ with tab1:
             start = change_indices[i]
             end = change_indices[i+1]
             reg = regime_series.loc[start]
-            fig.add_vrect(x0=start, x1=end, fillcolor=REGIME_COLORS.get(reg, "white"), opacity=0.2, layer="below", line_width=0)
+            if reg != "UNKNOWN":
+                fig.add_vrect(x0=start, x1=end, fillcolor=REGIME_COLORS.get(reg, "white"), opacity=0.2, layer="below", line_width=0)
 
-        fig.update_layout(title=f"Performance vs Benchmark {zone} (Log Scale)", yaxis_type="log", height=500)
+        fig.update_layout(title=f"Performance vs Benchmark {zone} (Base 100)", yaxis_type="log", height=500)
         return fig
 
     st.plotly_chart(plot_perf_with_regimes("US"), use_container_width=True)
@@ -103,7 +104,6 @@ with tab2:
         fig_g = go.Figure()
         fig_g.add_trace(go.Scatter(x=signals.index, y=signals[f"Price_{zone}"], name="Prix", line=dict(color='black')))
         fig_g.add_trace(go.Scatter(x=signals.index, y=signals[f"MA200_{zone}"], name="MA200", line=dict(color='blue')))
-        # Hysteresis bands
         fig_g.add_trace(go.Scatter(x=signals.index, y=signals[f"MA200_{zone}"]*1.01, name="+1% Band", line=dict(dash='dash', color='gray')))
         fig_g.add_trace(go.Scatter(x=signals.index, y=signals[f"MA200_{zone}"]*0.99, name="-1% Band", line=dict(dash='dash', color='gray')))
         fig_g.update_layout(title=f"Signal Croissance {zone}", height=400)
@@ -113,7 +113,6 @@ with tab2:
         fig_i = go.Figure()
         fig_i.add_trace(go.Scatter(x=signals.index, y=signals[f"Ratio_{zone}"], name="Ratio B+/B-", line=dict(color='darkgreen')))
         fig_i.add_trace(go.Scatter(x=signals.index, y=signals[f"Median200_{zone}"], name="Médiane 200j", line=dict(color='purple')))
-        # Hysteresis bands
         fig_i.add_trace(go.Scatter(x=signals.index, y=signals[f"Median200_{zone}"]*1.01, name="+1% Band", line=dict(dash='dash', color='gray')))
         fig_i.add_trace(go.Scatter(x=signals.index, y=signals[f"Median200_{zone}"]*0.99, name="-1% Band", line=dict(dash='dash', color='gray')))
         fig_i.update_layout(title=f"Signal Inflation {zone}", height=400)
@@ -123,7 +122,7 @@ with tab2:
 with tab3:
     st.header("Analyse des Performances")
 
-    st.subheader("Statistiques de la Stratégie")
+    st.subheader("Statistiques Globales")
     formatted_stats = stats.copy()
     for col in ["CAGR", "Vol", "MaxDD", "HitRate"]:
         formatted_stats[col] = (formatted_stats[col] * 100).map("{:.2f}%".format)
@@ -133,15 +132,20 @@ with tab3:
     st.divider()
     st.subheader("Performance des Secteurs par Régime")
 
-    pivot_us = sector_perf[sector_perf["Zone"] == "US"].pivot(index="Sector", columns="Regime", values="Ann_Return")
-    pivot_eu = sector_perf[sector_perf["Zone"] == "EU"].pivot(index="Sector", columns="Regime", values="Ann_Return")
-
     col1, col2 = st.columns(2)
+    pivot_us = sector_perf[sector_perf["Zone"] == "US"].pivot(index="Sector", columns="Regime", values="Ann_Return")
     fig_h_us = px.imshow(pivot_us, text_auto=".1%", title="Heatmap Secteurs US", color_continuous_scale="RdYlGn")
     col1.plotly_chart(fig_h_us, use_container_width=True)
 
+    pivot_eu = sector_perf[sector_perf["Zone"] == "EU"].pivot(index="Sector", columns="Regime", values="Ann_Return")
     fig_h_eu = px.imshow(pivot_eu, text_auto=".1%", title="Heatmap Secteurs EU", color_continuous_scale="RdYlGn")
     col2.plotly_chart(fig_h_eu, use_container_width=True)
+
+    st.divider()
+    st.subheader("Analyse Historique par Périodes")
+    col1, col2 = st.columns(2)
+    col1.image("sector_performance_US.png", caption="Heatmap US (Périodes vs Régimes)")
+    col2.image("sector_performance_EU.png", caption="Heatmap EU (Périodes vs Régimes)")
 
 # --- TAB 4: METHODOLOGY ---
 with tab4:
@@ -162,7 +166,7 @@ with tab4:
       - Passage à **DOWN** : Ratio < 0,99 * Médiane.
 
     ### 3. Composition des Portefeuilles Bêta
-    - **Bêta Positif** (Sensibles Inflation) : Energy (35%), Financials/Banks (25%), Materials (20%), Commodities (20%).
+    - **Bêta Positif** (Sensibles Inflation) : Energy (35%), Financials (25%), Materials (20%), Commodities (20%).
     - **Bêta Négatif** (Défensifs/Growth) : Growth Tech (40%), Cons. Discretionary (30%), Utilities (15%), Growth Real Estate (15%).
 
     ### 4. Matrice d'Allocation
