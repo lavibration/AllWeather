@@ -42,20 +42,20 @@ with tab1:
     st.subheader("Allocations Cibles (Macro Pocket 90% + Gold 10%)")
     col1, col2 = st.columns(2)
 
-    # Target Allocations: 90% Macro Pocket (33.3% per sector max) + 10% Gold
-    # Weights below are for the TOTAL portfolio (Sectors = 33.33% * 90% = 30%)
+    # Target Allocations: 90% Macro Pocket + 10% Gold
+    # Weights revised for v2 strategy
     alloc_us = {
-        "GOLDILOCKS": {"XLK": 30.0, "XLY": 30.0, "XLF": 30.0, "GLD": 10.0},
-        "REFLATION": {"XLE": 30.0, "XLB": 30.0, "XLF": 30.0, "GLD": 10.0},
-        "STAGFLATION": {"Commodities (DBC)": 30.0, "CASH": 60.0, "GLD": 10.0},
-        "DEFLATION": {"XLY": 30.0, "XLRE": 30.0, "XLC": 30.0, "GLD": 10.0}
+        "GOLDILOCKS":  {"XLK": 30.0, "XLY": 30.0, "XLF": 30.0, "GLD": 10.0},
+        "REFLATION":   {"XLE": 36.0, "DBC": 27.0, "XLB": 27.0, "GLD": 10.0},
+        "STAGFLATION": {"DBC": 36.0, "CASH": 54.0, "GLD": 10.0},
+        "DEFLATION":   {"XLY": 36.0, "XLC": 27.0, "CASH": 27.0, "GLD": 10.0}
     }
 
     alloc_eu = {
-        "GOLDILOCKS": {"Santé (EXV4)": 30.0, "Tech (EXV3)": 30.0, "Real Estate (EXI5)": 30.0, "GLD": 10.0},
-        "REFLATION": {"Banks (EXV1)": 30.0, "Resources (EXV6)": 30.0, "Commodities (DBC)": 30.0, "GLD": 10.0},
-        "STAGFLATION": {"Commodities (DBC)": 30.0, "CASH": 60.0, "GLD": 10.0},
-        "DEFLATION": {"Santé (EXV4)": 30.0, "Auto (EXV2)": 30.0, "Telecom (EXV7)": 30.0, "GLD": 10.0}
+        "GOLDILOCKS":  {"EXV4.DE": 30.0, "EXV3.DE": 30.0, "EXI5.DE": 30.0, "GLD": 10.0},
+        "REFLATION":   {"EXV6.DE": 36.0, "EXV1.DE": 30.0, "DBC": 24.0, "GLD": 10.0},
+        "STAGFLATION": {"DBC": 30.0, "CASH": 60.0, "GLD": 10.0},
+        "DEFLATION":   {"EXV3.DE": 36.0, "EXV8.DE": 30.0, "EXV7.DE": 24.0, "GLD": 10.0}
     }
 
     for zone, alloc_map, c in [("US", alloc_us, col1), ("EU", alloc_eu, col2)]:
@@ -94,28 +94,34 @@ with tab1:
 
 # --- TAB 2: SIGNALS ---
 with tab2:
-    st.header("Signaux & Hystérésis")
+    st.header("Signaux v2 (Médiane, Buffer Adaptatif, Filtre Persistance)")
 
     for zone in ["US", "EU"]:
         st.subheader(f"Zone {zone}")
         col1, col2 = st.columns(2)
 
-        # Growth Signal (Price vs MA200)
+        # Growth Signal (Price vs Med200)
         fig_g = go.Figure()
         fig_g.add_trace(go.Scatter(x=signals.index, y=signals[f"Price_{zone}"], name="Prix", line=dict(color='black')))
-        fig_g.add_trace(go.Scatter(x=signals.index, y=signals[f"MA200_{zone}"], name="MA200", line=dict(color='blue')))
-        fig_g.add_trace(go.Scatter(x=signals.index, y=signals[f"MA200_{zone}"]*1.01, name="+1% Band", line=dict(dash='dash', color='gray')))
-        fig_g.add_trace(go.Scatter(x=signals.index, y=signals[f"MA200_{zone}"]*0.99, name="-1% Band", line=dict(dash='dash', color='gray')))
-        fig_g.update_layout(title=f"Signal Croissance {zone}", height=400)
+        fig_g.add_trace(go.Scatter(x=signals.index, y=signals[f"Med200_{zone}"], name="Médiane 200j", line=dict(color='blue')))
+        # Upper and Lower adaptive bands
+        upper_g = signals[f"Med200_{zone}"] * (1 + signals[f"BufGrowth_{zone}"])
+        lower_g = signals[f"Med200_{zone}"] * (1 - signals[f"BufGrowth_{zone}"])
+        fig_g.add_trace(go.Scatter(x=signals.index, y=upper_g, name="Upper Buffer", line=dict(dash='dash', color='gray')))
+        fig_g.add_trace(go.Scatter(x=signals.index, y=lower_g, name="Lower Buffer", line=dict(dash='dash', color='gray')))
+        fig_g.update_layout(title=f"Signal Croissance {zone} (v2)", height=400)
         col1.plotly_chart(fig_g, use_container_width=True)
 
-        # Inflation Signal (Ratio vs Median)
+        # Inflation Signal (Ratio vs Med200Ratio)
         fig_i = go.Figure()
         fig_i.add_trace(go.Scatter(x=signals.index, y=signals[f"Ratio_{zone}"], name="Ratio B+/B-", line=dict(color='darkgreen')))
-        fig_i.add_trace(go.Scatter(x=signals.index, y=signals[f"Median200_{zone}"], name="Médiane 200j", line=dict(color='purple')))
-        fig_i.add_trace(go.Scatter(x=signals.index, y=signals[f"Median200_{zone}"]*1.01, name="+1% Band", line=dict(dash='dash', color='gray')))
-        fig_i.add_trace(go.Scatter(x=signals.index, y=signals[f"Median200_{zone}"]*0.99, name="-1% Band", line=dict(dash='dash', color='gray')))
-        fig_i.update_layout(title=f"Signal Inflation {zone}", height=400)
+        fig_i.add_trace(go.Scatter(x=signals.index, y=signals[f"Med200Ratio_{zone}"], name="Médiane 200j", line=dict(color='purple')))
+        # Upper and Lower adaptive bands
+        upper_i = signals[f"Med200Ratio_{zone}"] * (1 + signals[f"BufInfl_{zone}"])
+        lower_i = signals[f"Med200Ratio_{zone}"] * (1 - signals[f"BufInfl_{zone}"])
+        fig_i.add_trace(go.Scatter(x=signals.index, y=upper_i, name="Upper Buffer", line=dict(dash='dash', color='gray')))
+        fig_i.add_trace(go.Scatter(x=signals.index, y=lower_i, name="Lower Buffer", line=dict(dash='dash', color='gray')))
+        fig_i.update_layout(title=f"Signal Inflation {zone} (v2)", height=400)
         col2.plotly_chart(fig_i, use_container_width=True)
 
 # --- TAB 3: PERFORMANCE ---
@@ -124,8 +130,9 @@ with tab3:
 
     st.subheader("Statistiques Globales")
     formatted_stats = stats.copy()
-    for col in ["CAGR", "Vol", "MaxDD", "HitRate"]:
-        formatted_stats[col] = (formatted_stats[col] * 100).map("{:.2f}%".format)
+    for col in ["CAGR", "Vol", "MaxDD", "HitRate", "Alpha"]:
+        if col in formatted_stats.columns:
+            formatted_stats[col] = (formatted_stats[col] * 100).map("{:.2f}%".format)
     formatted_stats["Sharpe"] = formatted_stats["Sharpe"].map("{:.2f}".format)
     st.table(formatted_stats)
 
