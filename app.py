@@ -24,7 +24,7 @@ def load_data():
 res, signals, stats = load_data()
 
 # --- 2. TABS ---
-tab1, tab2, tab3, tab4 = st.tabs(["Cockpit d'Exécution", "Signaux & Hystérésis", "Analyse des Performances", "Méthodologie"])
+tab1, tab2, tab3, tab5, tab4 = st.tabs(["Cockpit d'Exécution", "Signaux & Hystérésis", "Analyse des Performances", "Comparaison Méthodologies", "Méthodologie"])
 
 # --- TAB 1: COCKPIT ---
 with tab1:
@@ -178,6 +178,60 @@ with tab3:
         st.write(f"**Zone EU ({p_select})**")
         p_pivot_eu = p_df[p_df["Zone"] == "EU"].pivot(index="Sector", columns="Regime", values="Ann_Return")
         st.dataframe(p_pivot_eu.style.format("{:.2%}") if not p_pivot_eu.empty else p_pivot_eu)
+
+# --- TAB 5: METHODOLOGY COMPARISON ---
+with tab5:
+    st.header("Comparaison des Méthodologies")
+
+    # Load comparison stats
+    try:
+        comp_stats = pd.read_csv("strategy_comparison_stats.csv")
+    except:
+        comp_stats = pd.DataFrame()
+
+    if not comp_stats.empty:
+        st.subheader("Performance par Variante (V2-V5)")
+        # Pivot table for better comparison
+        comp_pivot = comp_stats.pivot(index="Variant", columns="Zone", values="Alpha")
+        st.write("**Alpha vs Benchmark par Zone**")
+        st.dataframe(comp_pivot.style.format("{:.2%}") if not comp_pivot.empty else comp_pivot)
+
+        st.write("**Statistiques de Performance Détaillées**")
+        disp_stats = comp_stats.copy()
+        for col in ["CAGR", "Vol", "MaxDD", "Alpha"]:
+            disp_stats[col] = (disp_stats[col] * 100).map("{:.2f}%".format)
+        st.table(disp_stats)
+
+        st.divider()
+        st.subheader("Visualisation des Equity Curves (Europe)")
+
+        fig_comp = go.Figure()
+        for name in ["V2", "V3", "V4", "V5"]:
+            try:
+                df_v = pd.read_csv(f"backtest_results_{name}.csv", index_col=0, parse_dates=True)
+                fig_comp.add_trace(go.Scatter(x=df_v.index, y=df_v["Strategy_EU"], name=f"V{name[1:]} (EU)"))
+            except:
+                pass
+
+        # Add Benchmark EU
+        try:
+            df_ref = pd.read_csv("backtest_results_V2.csv", index_col=0, parse_dates=True)
+            fig_comp.add_trace(go.Scatter(x=df_ref.index, y=df_ref["Benchmark_EU"], name="Benchmark EU", line=dict(color='black', dash='dot')))
+        except:
+            pass
+
+        fig_comp.update_layout(title="Equity Curves Comparées (Log scale)", yaxis_type="log", height=500)
+        st.plotly_chart(fig_comp, use_container_width=True)
+
+        st.info("""
+        **Légende des Variantes :**
+        - **V2 (Robustifiée)** : Médiane 200j + Buffer Adaptatif (Asymm) + Filtre 15 jours.
+        - **V3 (Buffer Fixe)** : Médiane 200j + Buffer Fixe (±1%) + Filtre 15 jours.
+        - **V4 (Double Test)** : Médiane 200j + Buffer Fixe (±1%) + Filtre 10 jours.
+        - **V5 (Cible alternative)** : Médiane 200j + Buffer Adaptatif (Asymm) + Filtre 10 jours.
+        """)
+    else:
+        st.warning("Données de comparaison non disponibles. Veuillez lancer le data engine.")
 
 # --- TAB 4: METHODOLOGY ---
 with tab4:
