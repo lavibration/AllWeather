@@ -18,11 +18,10 @@ REGIME_COLORS = {
 def load_data():
     res = pd.read_csv("backtest_results.csv", index_col=0, parse_dates=True)
     signals = pd.read_csv("signals_analysis.csv", index_col=0, parse_dates=True)
-    sector_perf = pd.read_csv("sector_performance.csv")
     stats = pd.read_csv("strategy_stats.csv")
-    return res, signals, sector_perf, stats
+    return res, signals, stats
 
-res, signals, sector_perf, stats = load_data()
+res, signals, stats = load_data()
 
 # --- 2. TABS ---
 tab1, tab2, tab3, tab4 = st.tabs(["Cockpit d'Exécution", "Signaux & Hystérésis", "Analyse des Performances", "Méthodologie"])
@@ -140,7 +139,10 @@ with tab3:
     st.subheader("Performance des Secteurs par Régime (Période Globale)")
 
     # Load Global Sector Performance
-    global_perf = pd.read_csv("sector_perf_TOTAL.csv")
+    try:
+        global_perf = pd.read_csv("sector_perf_TOTAL.csv")
+    except:
+        global_perf = pd.DataFrame()
 
     col1, col2 = st.columns(2)
 
@@ -187,13 +189,15 @@ with tab4:
     - **Frais de Transaction** : 0,10% appliqués sur la valeur totale de chaque ligne modifiée (turnover).
     - **Plafond** : Maximum 33,3% par secteur au sein de la poche macro (soit 30% du portefeuille total).
 
-    ### 2. Calcul des Signaux (Hystérésis 1,0 %)
-    - **Signal Croissance** : Indice (S&P 500 ou Euro Stoxx 50) vs sa Moyenne Mobile 200j.
-      - Passage à **UP** : Clôture > 1,01 * MM200.
-      - Passage à **DOWN** : Clôture < 0,99 * MM200.
-    - **Signal Inflation** : Ratio (Bêta Positif / Bêta Négatif) vs sa Médiane 200j.
-      - Passage à **UP** : Ratio > 1,01 * Médiane.
-      - Passage à **DOWN** : Ratio < 0,99 * Médiane.
+    ### 2. Calcul des Signaux (v2 : Médiane & Buffers Adaptatifs)
+    - **Filtre de Persistance** : Une confirmation de 15 jours est requise pour valider tout changement de régime (réduction des faux signaux).
+    - **Signal Croissance** : Indice (S&P 500 ou Euro Stoxx 50) vs sa **Médiane 200j**.
+      - **Bandes Adaptatives** : Seuil dynamique basé sur 0,5 * Volatilité (60j).
+      - Passage à **UP** : Clôture > (1 + Buffer) * Médiane.
+      - Passage à **DOWN** : Clôture < (1 - Buffer) * Médiane.
+    - **Signal Inflation** : Ratio (Bêta Positif / Bêta Négatif) vs sa **Médiane 200j**.
+      - Passage à **UP** : Ratio > (1 + Buffer) * Médiane.
+      - Passage à **DOWN** : Ratio < (1 - Buffer) * Médiane.
 
     ### 3. Composition des Portefeuilles Bêta
     - **Bêta Positif** (Sensibles Inflation) : Energy (35%), Financials (25%), Materials (20%), Commodities (20%).
