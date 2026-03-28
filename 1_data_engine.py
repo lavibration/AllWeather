@@ -226,77 +226,49 @@ if __name__ == "__main__":
     bench_us = (1 + data[US_INDEX].pct_change().fillna(0)).cumprod() * 100
     bench_eu = (1 + data[EU_INDEX].pct_change().fillna(0)).cumprod() * 100
 
-    # Define variants to compare
-    # V2: Med200 + Asymm + 15j
-    # V3: Med200 + Fixed 1% + 15j
-    # V4: Med200 + Fixed 1% + 10j
-    # V5: Med200 + Asymm + 10j
-    variants = {
-        "V2": {"buffer": "asymm", "days": 15},
-        "V3": {"buffer": "fixed", "days": 15},
-        "V4": {"buffer": "fixed", "days": 10},
-        "V5": {"buffer": "asymm", "days": 10},
-    }
+    print("Calcul des signaux et du backtest (Robustifiée par zone)...")
+    # Zone-specific confirmation delay: US = 10j (réactif), EU = 15j (résistant)
+    res_us = calculate_signals_parametric(data, US_INDEX, "US", buffer_mode="asymm", confirm_days=10)
+    res_eu = calculate_signals_parametric(data, EU_INDEX, "EU", buffer_mode="asymm", confirm_days=15)
 
-    all_comparison_stats = []
+    v_us = run_backtest(data, "US", ALLOC_US, res_us["regime"])
+    v_eu = run_backtest(data, "EU", ALLOC_EU, res_eu["regime"])
 
-    for name, params in variants.items():
-        print(f"Calcul des signaux et du backtest pour {name}...")
-        res_us_v = calculate_signals_parametric(data, US_INDEX, "US", buffer_mode=params["buffer"], confirm_days=params["days"])
-        res_eu_v = calculate_signals_parametric(data, EU_INDEX, "EU", buffer_mode=params["buffer"], confirm_days=params["days"])
+    # 1. backtest_results.csv
+    pd.DataFrame({
+        "Strategy_US": v_us, "Benchmark_US": bench_us, "Regime_US": res_us["regime"],
+        "Strategy_EU": v_eu, "Benchmark_EU": bench_eu, "Regime_EU": res_eu["regime"]
+    }).to_csv("backtest_results.csv")
 
-        v_us_v = run_backtest(data, "US", ALLOC_US, res_us_v["regime"])
-        v_eu_v = run_backtest(data, "EU", ALLOC_EU, res_eu_v["regime"])
+    # 2. signals_analysis.csv
+    pd.DataFrame({
+        "Price_US": res_us["price"], "Med200_US": res_us["med200_growth"], "BufGrowth_US": res_us["buf_growth"],
+        "Ratio_US": res_us["ratio"], "Med200Ratio_US": res_us["med200_infl"], "BufInfl_US": res_us["buf_infl"],
+        "Price_EU": res_eu["price"], "Med200_EU": res_eu["med200_growth"], "BufGrowth_EU": res_eu["buf_growth"],
+        "Ratio_EU": res_eu["ratio"], "Med200Ratio_EU": res_eu["med200_infl"], "BufInfl_EU": res_eu["buf_infl"]
+    }).to_csv("signals_analysis.csv")
 
-        # Save results for this variant
-        df_v = pd.DataFrame({
-            "Strategy_US": v_us_v, "Benchmark_US": bench_us, "Regime_US": res_us_v["regime"],
-            "Strategy_EU": v_eu_v, "Benchmark_EU": bench_eu, "Regime_EU": res_eu_v["regime"]
-        })
-        df_v.to_csv(f"backtest_results_{name}.csv")
+    # 3. strategy_stats.csv
+    s_us = calculate_stats(v_us, bench_us)
+    s_eu = calculate_stats(v_eu, bench_eu)
+    pd.DataFrame([
+        {"Zone": "US", **s_us},
+        {"Zone": "EU", **s_eu}
+    ]).to_csv("strategy_stats.csv", index=False)
 
-        # Calculate stats
-        s_us_v = calculate_stats(v_us_v, bench_us)
-        s_eu_v = calculate_stats(v_eu_v, bench_eu)
+    # 4. sector_performance.csv (and period files)
+    export_sector_performance(data, res_us, res_eu)
 
-        all_comparison_stats.append({"Variant": name, "Zone": "US", **s_us_v})
-        all_comparison_stats.append({"Variant": name, "Zone": "EU", **s_eu_v})
-
-        # If it's V2 (the "Robust" version), also update the primary output files for the main dashboard
-        if name == "V2":
-            res_us, res_eu = res_us_v, res_eu_v
-            v_us, v_eu = v_us_v, v_eu_v
-            s_us, s_eu = s_us_v, s_eu_v
-
-            df_v.to_csv("backtest_results.csv")
-
-            pd.DataFrame({
-                "Price_US": res_us["price"], "Med200_US": res_us["med200_growth"], "BufGrowth_US": res_us["buf_growth"],
-                "Ratio_US": res_us["ratio"], "Med200Ratio_US": res_us["med200_infl"], "BufInfl_US": res_us["buf_infl"],
-                "Price_EU": res_eu["price"], "Med200_EU": res_eu["med200_growth"], "BufGrowth_EU": res_eu["buf_growth"],
-                "Ratio_EU": res_eu["ratio"], "Med200Ratio_EU": res_eu["med200_infl"], "BufInfl_EU": res_eu["buf_infl"]
-            }).to_csv("signals_analysis.csv")
-
-            pd.DataFrame([
-                {"Zone": "US", **s_us},
-                {"Zone": "EU", **s_eu}
-            ]).to_csv("strategy_stats.csv", index=False)
-
-            export_sector_performance(data, res_us, res_eu)
-
-    # Save comparison stats
-    pd.DataFrame(all_comparison_stats).to_csv("strategy_comparison_stats.csv", index=False)
-
-    # Visual for Dashboard (comparing all variants for EU as an example)
+    # Final Visual for Dashboard
     plt.figure(figsize=(12, 6))
-    for name in variants:
-        df_v = pd.read_csv(f"backtest_results_{name}.csv", index_col=0, parse_dates=True)
-        plt.plot(df_v["Strategy_EU"], label=f"Strategy EU {name}")
-    plt.plot(bench_eu, label="Bench EU", color="black", linestyle="--", alpha=0.5)
+    plt.plot(v_us, label="Strategy US (10j delay)", color="blue")
+    plt.plot(bench_us, label="Bench US", color="blue", linestyle="--", alpha=0.5)
+    plt.plot(v_eu, label="Strategy EU (15j delay)", color="red")
+    plt.plot(bench_eu, label="Bench EU", color="red", linestyle="--", alpha=0.5)
     plt.yscale("log")
-    plt.title("Comparaison des Méthodologies (Zone Europe)")
+    plt.title("Performance Stratégie Robustifiée (US 10j / EU 15j)")
     plt.legend()
     plt.grid(True, alpha=0.3)
-    plt.savefig("strategy_comparison_eu.png")
+    plt.savefig("strategy_vs_benchmark.png")
 
     print("\nData Engine — Exécution réussie.")
