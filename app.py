@@ -36,7 +36,7 @@ with tab1:
         c.metric(f"Régime Actuel {zone}", current_regime)
         c.markdown(f"<div style='background-color:{REGIME_COLORS.get(current_regime, 'white')}; height:20px; width:100%; border-radius:5px;'></div>", unsafe_allow_html=True)
 
-    st.divider()
+    st.markdown("---")
 
     st.subheader("Allocations Cibles (Macro Pocket 90% + Gold 10%)")
     col1, col2 = st.columns(2)
@@ -66,7 +66,7 @@ with tab1:
         else:
             c.warning(f"Régime {reg} inconnu pour {zone}")
 
-    st.divider()
+    st.markdown("---")
     st.subheader("Performance Historique et Régimes")
 
     def plot_perf_with_regimes(zone):
@@ -135,7 +135,7 @@ with tab3:
     formatted_stats["Sharpe"] = formatted_stats["Sharpe"].map("{:.2f}".format)
     st.table(formatted_stats)
 
-    st.divider()
+    st.markdown("---")
     st.subheader("Performance des Secteurs par Régime (Période Globale)")
 
     # Load Global Sector Performance
@@ -160,11 +160,11 @@ with tab3:
         fig_h_eu = px.imshow(pivot_eu, text_auto=".1%", title="Heatmap Secteurs EU", color_continuous_scale="RdYlGn")
         st.plotly_chart(fig_h_eu, use_container_width=True)
 
-    st.divider()
+    st.markdown("---")
     st.subheader("Signaux & Graphique de Stratégie")
     st.image("strategy_vs_benchmark.png", caption="Comparaison des deux stratégies vs leurs benchmarks respectifs (Log scale)")
 
-    st.divider()
+    st.markdown("---")
     st.subheader("Analyse Historique par Périodes")
     p_select = st.selectbox("Choisir une période d'analyse", ["P1", "P2", "P3", "P4"])
     p_df = pd.read_csv(f"sector_perf_{p_select}.csv")
