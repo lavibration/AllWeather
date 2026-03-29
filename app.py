@@ -16,9 +16,39 @@ REGIME_COLORS = {
 
 @st.cache_data
 def load_data():
-    res = pd.read_csv("backtest_results.csv", index_col=0, parse_dates=True)
-    signals = pd.read_csv("signals_analysis.csv", index_col=0, parse_dates=True)
+    def robust_load(file):
+        df = pd.read_csv(file, decimal='.')
+        if 'Date' in df.columns:
+            df['Date'] = pd.to_datetime(df['Date'])
+            df = df.set_index('Date')
+        else:
+            # Check if first column is date-like
+            first_col = df.columns[0]
+            try:
+                temp_date = pd.to_datetime(df[first_col], errors='coerce')
+                if not temp_date.isna().all():
+                    df[first_col] = temp_date
+                    df = df.set_index(first_col)
+                    df.index.name = 'Date'
+            except:
+                pass
+
+        for col in df.columns:
+            if df[col].dtype == 'object':
+                # Try converting to numeric, but keep as object/string if it contains regimes
+                converted = pd.to_numeric(df[col].astype(str).str.replace(',', '.'), errors='coerce')
+                if not converted.isna().all():
+                    df[col] = converted
+        return df
+
+    res = robust_load("backtest_results.csv")
+    signals = robust_load("signals_analysis.csv")
     stats = pd.read_csv("strategy_stats.csv")
+    # stats numeric conversion
+    for col in stats.columns:
+        if col != 'Zone':
+            stats[col] = pd.to_numeric(stats[col], errors='coerce')
+
     return res, signals, stats
 
 res, signals, stats = load_data()
@@ -76,12 +106,12 @@ with tab1:
         plot_df = pd.DataFrame({
             "Price": signals[price_col],
             "Regime": res[regime_col]
-        }).dropna()
+        }).dropna().reset_index()
 
-        fig = px.scatter(plot_df, x=plot_df.index, y="Price", color="Regime",
+        fig = px.scatter(plot_df, x="Date", y="Price", color="Regime",
                          color_discrete_map=REGIME_COLORS,
                          title=f"Régimes Historiques {zone} (Index Price colored by Regime)",
-                         labels={"index": "Date", "Price": f"Prix Indice {zone}"})
+                         labels={"Date": "Date", "Price": f"Prix Indice {zone}"})
         fig.update_traces(marker=dict(size=3))
         fig.update_layout(yaxis_type="log", height=500)
         return fig
