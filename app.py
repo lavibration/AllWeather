@@ -129,26 +129,26 @@ with tab2:
 
         # Growth Signal (Price vs Med200)
         fig_g = go.Figure()
-        fig_g.add_trace(go.Scatter(x=signals.index, y=signals[f"Price_{zone}"], name="Prix", line=dict(color='black')))
-        fig_g.add_trace(go.Scatter(x=signals.index, y=signals[f"Med200_{zone}"], name="Médiane 200j", line=dict(color='blue')))
+        fig_g.add_trace(go.Scatter(x=signals.index, y=signals[f"Price_{zone}"], name="Prix", line=dict(color='white', width=1.5)))
+        fig_g.add_trace(go.Scatter(x=signals.index, y=signals[f"Med200_{zone}"], name="Médiane 200j", line=dict(color='#00BFFF', width=2))) # DeepSkyBlue
         # Upper and Lower adaptive bands
         upper_g = signals[f"Med200_{zone}"] * (1 + signals[f"BufGrowth_{zone}"])
         lower_g = signals[f"Med200_{zone}"] * (1 - signals[f"BufGrowth_{zone}"])
-        fig_g.add_trace(go.Scatter(x=signals.index, y=upper_g, name="Upper Buffer", line=dict(dash='dash', color='gray')))
-        fig_g.add_trace(go.Scatter(x=signals.index, y=lower_g, name="Lower Buffer", line=dict(dash='dash', color='gray')))
-        fig_g.update_layout(title=f"Signal Croissance {zone} (v2)", height=450, yaxis_type="log")
+        fig_g.add_trace(go.Scatter(x=signals.index, y=upper_g, name="Upper Buffer", line=dict(dash='dash', color='rgba(255, 255, 255, 0.4)')))
+        fig_g.add_trace(go.Scatter(x=signals.index, y=lower_g, name="Lower Buffer", line=dict(dash='dash', color='rgba(255, 255, 255, 0.4)')))
+        fig_g.update_layout(template="plotly_dark", title=f"Signal Croissance {zone} (v2)", height=450, yaxis_type="log")
         col1.plotly_chart(fig_g, use_container_width=True)
 
         # Inflation Signal (Ratio vs Med200Ratio)
         fig_i = go.Figure()
-        fig_i.add_trace(go.Scatter(x=signals.index, y=signals[f"Ratio_{zone}"], name="Ratio B+/B-", line=dict(color='darkgreen')))
-        fig_i.add_trace(go.Scatter(x=signals.index, y=signals[f"Med200Ratio_{zone}"], name="Médiane 200j Ratio", line=dict(color='purple')))
+        fig_i.add_trace(go.Scatter(x=signals.index, y=signals[f"Ratio_{zone}"], name="Ratio B+/B-", line=dict(color='#00FF7F', width=1.5))) # SpringGreen
+        fig_i.add_trace(go.Scatter(x=signals.index, y=signals[f"Med200Ratio_{zone}"], name="Médiane 200j Ratio", line=dict(color='#FF00FF', width=2))) # Fuchsia
         # Upper and Lower adaptive bands
         upper_i = signals[f"Med200Ratio_{zone}"] * (1 + signals[f"BufInfl_{zone}"])
         lower_i = signals[f"Med200Ratio_{zone}"] * (1 - signals[f"BufInfl_{zone}"])
-        fig_i.add_trace(go.Scatter(x=signals.index, y=upper_i, name="Upper Buffer", line=dict(dash='dash', color='gray')))
-        fig_i.add_trace(go.Scatter(x=signals.index, y=lower_i, name="Lower Buffer", line=dict(dash='dash', color='gray')))
-        fig_i.update_layout(title=f"Signal Inflation {zone} (v2)", height=450)
+        fig_i.add_trace(go.Scatter(x=signals.index, y=upper_i, name="Upper Buffer", line=dict(dash='dash', color='rgba(255, 255, 255, 0.4)')))
+        fig_i.add_trace(go.Scatter(x=signals.index, y=lower_i, name="Lower Buffer", line=dict(dash='dash', color='rgba(255, 255, 255, 0.4)')))
+        fig_i.update_layout(template="plotly_dark", title=f"Signal Inflation {zone} (v2)", height=450)
         col2.plotly_chart(fig_i, use_container_width=True)
 
 # --- TAB 3: PERFORMANCE ---
