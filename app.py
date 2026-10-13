@@ -197,7 +197,14 @@ with tab3:
 
     st.markdown("---")
     st.subheader("Analyse Historique par Périodes")
-    p_select = st.selectbox("Choisir une période d'analyse", ["P1", "P2", "P3", "P4"])
+    period_map = {
+        "P1 (2005-2012)": "P1",
+        "P2 (2013-2019)": "P2",
+        "P3 (2020-2022)": "P3",
+        "P4 (2023-Présent)": "P4"
+    }
+    p_display = st.selectbox("Choisir une période d'analyse", list(period_map.keys()))
+    p_select = period_map[p_display]
     try:
         p_df = pd.read_csv(f"sector_perf_{p_select}.csv")
         col_a, col_b = st.columns(2)
