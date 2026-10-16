@@ -28,9 +28,9 @@ TICKERS_US = {
 }
 
 TICKERS_EU = {
-    "Energy": "EXV5.DE", "Financials": "EXV1.DE", "Materials": "EXV6.DE", "Commodities": "DBC",
-    "GrowthTech": "EXV3.DE", "ConsDisc": "EXV8.DE", "Utilities": "EXV9.DE", "GrowthRE": "EXI5.DE",
-    "Health": "EXV4.DE", "Auto": "EXV2.DE", "Telecoms": "EXV7.DE"
+    "Energy": "EXH1.DE", "Financials": "EXV1.DE", "Materials": "EXV6.DE", "Commodities": "DBC",
+    "GrowthTech": "EXV3.DE", "ConsDisc": "EXV8.DE", "Utilities": "EXH9.DE", "GrowthRE": "EXI5.DE",
+    "Health": "EXV4.DE", "Auto": "EXV5.DE", "Telecoms": "EXV2.DE"
 }
 
 # --- Allocation Matrix v2 (inchangée) ---
