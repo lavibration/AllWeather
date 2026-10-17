@@ -72,17 +72,17 @@ with tab1:
     col1, col2 = st.columns(2)
 
     alloc_us = {
-        "GOLDILOCKS":  {"XLK": 30.0, "XLY": 30.0, "XLF": 30.0, "GLD": 10.0},
+        "GOLDILOCKS":  {"XLK": 30.0, "XLY": 30.0, "XLC": 30.0, "GLD": 10.0},
         "REFLATION":   {"XLE": 36.0, "DBC": 27.0, "XLB": 27.0, "GLD": 10.0},
         "STAGFLATION": {"DBC": 36.0, "CASH": 54.0, "GLD": 10.0},
         "DEFLATION":   {"XLY": 36.0, "XLC": 27.0, "CASH": 27.0, "GLD": 10.0}
     }
 
     alloc_eu = {
-        "GOLDILOCKS":  {"EXV4.DE": 30.0, "EXV3.DE": 30.0, "EXI5.DE": 30.0, "GLD": 10.0},
+        "GOLDILOCKS":  {"EXV4.DE": 30.0, "EXV3.DE": 30.0, "EXV1.DE": 30.0, "GLD": 10.0},
         "REFLATION":   {"EXV6.DE": 36.0, "EXV1.DE": 30.0, "DBC": 24.0, "GLD": 10.0},
         "STAGFLATION": {"DBC": 30.0, "CASH": 60.0, "GLD": 10.0},
-        "DEFLATION":   {"EXV3.DE": 36.0, "EXV8.DE": 30.0, "EXV7.DE": 24.0, "GLD": 10.0}
+        "DEFLATION":   {"EXV3.DE": 36.0, "EXV8.DE": 30.0, "EXV2.DE": 24.0, "GLD": 10.0}
     }
 
     for zone, alloc_map, c in [("US", alloc_us, col1), ("EU", alloc_eu, col2)]:

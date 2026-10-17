@@ -35,17 +35,17 @@ TICKERS_EU = {
 
 # --- Allocation Matrix v2 (inchangée) ---
 ALLOC_US = {
-    "GOLDILOCKS":  {"XLK": 0.333, "XLY": 0.333, "XLF": 0.334},
+    "GOLDILOCKS":  {"XLK": 0.333, "XLY": 0.333, "XLC": 0.334},
     "REFLATION":   {"XLE": 0.400, "DBC": 0.300, "XLB": 0.300},
     "STAGFLATION": {"DBC": 0.400, "CASH": 0.600},
     "DEFLATION":   {"XLY": 0.400, "XLC": 0.300, "CASH": 0.300},
 }
 
 ALLOC_EU = {
-    "GOLDILOCKS":  {"EXV4.DE": 0.333, "EXV3.DE": 0.333, "EXI5.DE": 0.334},
+    "GOLDILOCKS":  {"EXV4.DE": 0.333, "EXV3.DE": 0.333, "EXV1.DE": 0.334},
     "REFLATION":   {"EXV6.DE": 0.400, "EXV1.DE": 0.333, "DBC":     0.267},
     "STAGFLATION": {"DBC": 0.333, "CASH": 0.667},
-    "DEFLATION":   {"EXV3.DE": 0.400, "EXV8.DE": 0.333, "EXV7.DE": 0.267},
+    "DEFLATION":   {"EXV3.DE": 0.400, "EXV8.DE": 0.333, "EXV2.DE": 0.267},
 }
 
 PERIODS = {
