@@ -10,7 +10,7 @@ import matplotlib.pyplot as plt
 
 GLD_TICKER  = "GLD"
 US_INDEX    = "^GSPC"
-EU_INDEX    = "FEZ"  # SPDR Euro Stoxx 50 ETF (procuration à partir de 2004)
+EU_INDEX    = "^STOXX50E"
 
 # --- Common parameters ---
 SIGNAL_WINDOW       = 200
