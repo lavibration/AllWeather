@@ -22,28 +22,32 @@ BETA_NEG_WEIGHTS = {"GrowthTech": 0.40, "ConsDisc": 0.30, "Utilities": 0.15, "Gr
 
 # --- Ticker Mappings (inchangés) ---
 TICKERS_US = {
+    "Core": "SPY",         # <-- NOUVEAU : Cœur de portefeuille US (S&P 500)
     "Energy": "XLE", "Financials": "XLF", "Materials": "XLB", "Commodities": "DBC",
     "GrowthTech": "XLK", "ConsDisc": "XLY", "Utilities": "XLU", "GrowthRE": "XLRE",
     "Comm": "XLC"
 }
 
 TICKERS_EU = {
+    "Core": "EUN2.DE",     # <-- NOUVEAU : Cœur de portefeuille EU (ETF iShares Euro Stoxx 50)
     "Energy": "EXH1.DE", "Financials": "EXV1.DE", "Materials": "EXV6.DE", "Commodities": "DBC",
     "GrowthTech": "EXV3.DE", "ConsDisc": "EXV8.DE", "Utilities": "EXH9.DE", "GrowthRE": "EXI5.DE",
     "Health": "EXV4.DE", "Auto": "EXV5.DE", "Telecoms": "EXV2.DE"
 }
 
-# --- Allocation Matrix v2 (inchangée) ---
+# --- Allocation Matrix v2 ---
 ALLOC_US = {
-    "GOLDILOCKS":  {"XLK": 0.333, "XLY": 0.333, "XLC": 0.334},
+    # 50% Indice pur + 40% Satellites offensifs (Tech & Comms)
+    "GOLDILOCKS":  {"SPY": 0.500, "XLK": 0.200, "XLC": 0.200},
     "REFLATION":   {"XLE": 0.400, "DBC": 0.300, "XLB": 0.300},
     "STAGFLATION": {"DBC": 0.400, "CASH": 0.600},
     "DEFLATION":   {"XLY": 0.400, "XLC": 0.300, "CASH": 0.300},
 }
 
 ALLOC_EU = {
-    "GOLDILOCKS":  {"EXV4.DE": 0.333, "EXV3.DE": 0.333, "EXV1.DE": 0.334},
-    "REFLATION":   {"EXV6.DE": 0.400, "EXV1.DE": 0.333, "DBC":     0.267},
+    # 50% Indice pur + 40% Satellites adaptés à l'EU (Banques + Santé)
+    "GOLDILOCKS":  {"EUN2.DE": 0.500, "EXV1.DE": 0.200, "EXV4.DE": 0.200},
+    "REFLATION":   {"EXV6.DE": 0.400, "EXV1.DE": 0.333, "DBC": 0.267},
     "STAGFLATION": {"DBC": 0.333, "CASH": 0.667},
     "DEFLATION":   {"EXV3.DE": 0.400, "EXV8.DE": 0.333, "EXV2.DE": 0.267},
 }
@@ -94,31 +98,62 @@ def _compute_asymmetric_buffer(series: pd.Series, window: int) -> pd.Series:
 
 def calculate_signals_parametric(data: pd.DataFrame, index_ticker: str, zone: str,
                                  buffer_mode="fixed", confirm_days=15) -> dict:
-    # 1. Growth
+    # 1. Croissance (Avec Asymétrie et Fast-Track)
     price = data[index_ticker]
     med200_growth = price.rolling(SIGNAL_WINDOW).median()
+
     if buffer_mode == "fixed":
         buf_growth = pd.Series(0.01, index=data.index)
+        buf_up = buf_growth
     else:
         buf_growth = _compute_asymmetric_buffer(price, BUFFER_ASYMM_WINDOW)
+        # PLAFOND ASYMÉTRIQUE : On limite le buffer d'achat à 2% max pour casser le mur de volatilité
+        buf_up = buf_growth.clip(upper=0.02)
 
     growth_raw = pd.Series("UNKNOWN", index=data.index, dtype="string")
     curr = "UNKNOWN"
     for i in range(len(data)):
-        p, m, b = price.iloc[i], med200_growth.iloc[i], buf_growth.iloc[i]
-        if not pd.isna(m) and not pd.isna(b):
-            if   p > (1 + b) * m: curr = "UP"
-            elif p < (1 - b) * m: curr = "DOWN"
+        p, m, b_u, b_d = price.iloc[i], med200_growth.iloc[i], buf_up.iloc[i], buf_growth.iloc[i]
+        if not pd.isna(m) and not pd.isna(b_u):
+            # Conditions d'achat et de vente désolidarisées
+            if   p > (1 + b_u) * m: curr = "UP"
+            elif p < (1 - b_d) * m: curr = "DOWN"
         growth_raw.iloc[i] = curr
-    growth_signal = _apply_persistence_filter(growth_raw, confirm_days)
 
-    # 2. Inflation
+    # FAST-TRACK : Calcul de la vélocité sur 15 jours
+    roc_15 = price.pct_change(15)
+
+    # Filtre de persistance dynamique pour la croissance
+    growth_signal = growth_raw.copy()
+    current_g = growth_raw.iloc[0]
+    pending_g = None
+    pending_cnt_g = 0
+    base_days = 10 if zone == "US" else 15
+
+    for i in range(len(growth_raw)):
+        r = growth_raw.iloc[i]
+        # Si le marché rebondit violemment (+6% en 15j), on réduit l'attente à 3 jours
+        req_days = 3 if roc_15.iloc[i] > 0.06 else base_days
+
+        if r == current_g:
+            pending_g, pending_cnt_g = None, 0
+        else:
+            if r == pending_g:
+                pending_cnt_g += 1
+                if pending_cnt_g >= req_days:
+                    current_g, pending_g, pending_cnt_g = pending_g, None, 0
+            else:
+                pending_g, pending_cnt_g = r, 1
+        growth_signal.iloc[i] = current_g
+
+    # 2. Inflation (Inchangé, utilise le buffer complet symétrique et persistance standard)
     rets  = data.pct_change().fillna(0)
     t_map = TICKERS_US if zone == "US" else TICKERS_EU
     pos_ret = sum(rets[t_map[k]] * BETA_POS_WEIGHTS[k] for k in BETA_POS_WEIGHTS if t_map[k] in rets.columns)
     neg_ret = sum(rets[t_map[k]] * BETA_NEG_WEIGHTS[k] for k in BETA_NEG_WEIGHTS if t_map[k] in rets.columns)
     ratio = (1 + pos_ret).cumprod() / (1 + neg_ret).cumprod()
     med200_infl = ratio.rolling(SIGNAL_WINDOW).median()
+
     if buffer_mode == "fixed":
         buf_infl = pd.Series(0.01, index=data.index)
     else:
@@ -132,8 +167,10 @@ def calculate_signals_parametric(data: pd.DataFrame, index_ticker: str, zone: st
             if   r > (1 + b) * m: curr = "UP"
             elif r < (1 - b) * m: curr = "DOWN"
         inflation_raw.iloc[i] = curr
-    inflation_signal = _apply_persistence_filter(inflation_raw, confirm_days)
 
+    inflation_signal = _apply_persistence_filter(inflation_raw, base_days)
+
+    # 3. Matrice des Régimes
     regime = pd.Series("UNKNOWN", index=data.index, dtype="string")
     regime[(growth_signal == "UP")   & (inflation_signal == "DOWN")] = "GOLDILOCKS"
     regime[(growth_signal == "UP")   & (inflation_signal == "UP")]   = "REFLATION"

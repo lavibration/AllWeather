@@ -72,14 +72,14 @@ with tab1:
     col1, col2 = st.columns(2)
 
     alloc_us = {
-        "GOLDILOCKS":  {"XLK": 30.0, "XLY": 30.0, "XLC": 30.0, "GLD": 10.0},
+        "GOLDILOCKS":  {"SPY": 45.0, "XLK": 18.0, "XLC": 18.0, "GLD": 10.0},
         "REFLATION":   {"XLE": 36.0, "DBC": 27.0, "XLB": 27.0, "GLD": 10.0},
         "STAGFLATION": {"DBC": 36.0, "CASH": 54.0, "GLD": 10.0},
         "DEFLATION":   {"XLY": 36.0, "XLC": 27.0, "CASH": 27.0, "GLD": 10.0}
     }
 
     alloc_eu = {
-        "GOLDILOCKS":  {"EXV4.DE": 30.0, "EXV3.DE": 30.0, "EXV1.DE": 30.0, "GLD": 10.0},
+        "GOLDILOCKS":  {"EUN2.DE": 45.0, "EXV1.DE": 18.0, "EXV4.DE": 18.0, "GLD": 10.0},
         "REFLATION":   {"EXV6.DE": 36.0, "EXV1.DE": 30.0, "DBC": 24.0, "GLD": 10.0},
         "STAGFLATION": {"DBC": 30.0, "CASH": 60.0, "GLD": 10.0},
         "DEFLATION":   {"EXV3.DE": 36.0, "EXV8.DE": 30.0, "EXV2.DE": 24.0, "GLD": 10.0}
@@ -229,14 +229,15 @@ with tab4:
     - **Frais de Transaction** : 0,10% appliqués sur la valeur totale de chaque ligne modifiée (turnover).
     - **Plafond** : Maximum 33,3% par secteur au sein de la poche macro (soit 30% du portefeuille total).
 
-    ### 2. Calcul des Signaux (v2 : Médiane & Buffers Adaptatifs)
-    - **Filtre de Persistance** : Une confirmation est requise pour valider tout changement de régime.
-      - **Zone US** : 10 jours (réactif).
-      - **Zone Europe** : 15 jours (résistant).
+    ### 2. Calcul des Signaux (v2 : Médiane, Buffers Adaptatifs Capping & Fast-Track Momentum)
+    - **Filtre de Persistance & Fast-Track** :
+      - **Zone US** : 10 jours de base.
+      - **Zone Europe** : 15 jours de base.
+      - **Fast-Track Momentum** : Si la vélocité à 15j (ROC15) > 6%, le filtre est ramené à 3 jours pour capter les rebonds violents.
     - **Signal Croissance** : Indice (S&P 500 ou Euro Stoxx 50) vs sa **Médiane 200j**.
-      - **Bandes Adaptatives** : Seuil dynamique basé sur 0,5 * Volatilité (60j).
-      - Passage à **UP** : Clôture > (1 + Buffer) * Médiane.
-      - Passage à **DOWN** : Clôture < (1 - Buffer) * Médiane.
+      - **Bandes Adaptatives Asymétriques** : Seuil d'achat (UP) plafonné à **2% max** (`buf_up = clip(upper=0.02)`), seuil de baisse basé sur 0,5 * Volatilité (60j).
+      - Passage à **UP** : Clôture > (1 + Buffer Achat Max 2%) * Médiane.
+      - Passage à **DOWN** : Clôture < (1 - Buffer Baisse Vol) * Médiane.
     - **Signal Inflation** : Ratio (Bêta Positif / Bêta Négatif) vs sa **Médiane 200j**.
       - Passage à **UP** : Ratio > (1 + Buffer) * Médiane.
       - Passage à **DOWN** : Ratio < (1 - Buffer) * Médiane.
